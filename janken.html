@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>じゃんけんゲーム</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+
+    .container {
+      text-align: center;
+      padding: 2rem;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, #e94560, #0f3460);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 20px rgba(233, 69, 96, 0.5));
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: #a0aec0;
+      margin-bottom: 2rem;
+    }
+
+    .score-board {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .score-item {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 0.75rem 1.5rem;
+      min-width: 90px;
+    }
+
+    .score-label {
+      font-size: 0.75rem;
+      color: #a0aec0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .score-value {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    .score-item.win .score-value  { color: #48bb78; }
+    .score-item.lose .score-value { color: #fc8181; }
+    .score-item.draw .score-value { color: #f6ad55; }
+
+    .arena {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      min-height: 150px;
+    }
+
+    .player-side, .cpu-side {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .hand-display {
+      font-size: 5rem;
+      line-height: 1;
+      transition: transform 0.3s ease;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+    }
+
+    .hand-display.shake {
+      animation: shake 0.5s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: rotate(0deg) translateY(0); }
+      25%       { transform: rotate(-15deg) translateY(-10px); }
+      75%       { transform: rotate(15deg) translateY(-10px); }
+    }
+
+    .side-label {
+      font-size: 0.85rem;
+      color: #a0aec0;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .vs-badge {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #e94560;
+      background: rgba(233, 69, 96, 0.1);
+      border: 2px solid rgba(233, 69, 96, 0.3);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .result-banner {
+      font-size: 1.75rem;
+      font-weight: bold;
+      height: 2.5rem;
+      margin-bottom: 1.5rem;
+      transition: opacity 0.3s;
+    }
+
+    .result-banner.win  { color: #48bb78; }
+    .result-banner.lose { color: #fc8181; }
+    .result-banner.draw { color: #f6ad55; }
+
+    .choices {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .choice-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      min-width: 90px;
+      color: #fff;
+    }
+
+    .choice-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(233, 69, 96, 0.6);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(233, 69, 96, 0.2);
+    }
+
+    .choice-btn:active {
+      transform: translateY(0);
+    }
+
+    .choice-btn.selected {
+      border-color: #e94560;
+      background: rgba(233, 69, 96, 0.15);
+    }
+
+    .choice-btn .emoji {
+      font-size: 2.5rem;
+      line-height: 1;
+    }
+
+    .choice-btn .name {
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .reset-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: #a0aec0;
+      padding: 0.5rem 1.25rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .reset-btn:hover {
+      border-color: rgba(255, 255, 255, 0.4);
+      color: #fff;
+    }
+
+    .history {
+      margin-top: 1.5rem;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .history-title {
+      font-size: 0.75rem;
+      color: #718096;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .history-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      justify-content: center;
+    }
+
+    .history-item {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 100px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .history-item.win  { color: #48bb78; border-color: rgba(72,187,120,0.3); }
+    .history-item.lose { color: #fc8181; border-color: rgba(252,129,129,0.3); }
+    .history-item.draw { color: #f6ad55; border-color: rgba(246,173,85,0.3); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>✊ じゃんけん ✌️</h1>
+    <p class="subtitle">グー・チョキ・パーを選んでね！</p>
+
+    <div class="score-board">
+      <div class="score-item win">
+        <div class="score-label">勝ち</div>
+        <div class="score-value" id="win-count">0</div>
+      </div>
+      <div class="score-item draw">
+        <div class="score-label">あいこ</div>
+        <div class="score-value" id="draw-count">0</div>
+      </div>
+      <div class="score-item lose">
+        <div class="score-label">負け</div>
+        <div class="score-value" id="lose-count">0</div>
+      </div>
+    </div>
+
+    <div class="arena">
+      <div class="player-side">
+        <div class="hand-display" id="player-hand">🤜</div>
+        <div class="side-label">あなた</div>
+      </div>
+      <div class="vs-badge">VS</div>
+      <div class="cpu-side">
+        <div class="hand-display" id="cpu-hand" style="transform: scaleX(-1)">🤛</div>
+        <div class="side-label">CPU</div>
+      </div>
+    </div>
+
+    <div class="result-banner" id="result-banner"></div>
+
+    <div class="choices">
+      <button class="choice-btn" onclick="play('rock')">
+        <span class="emoji">✊</span>
+        <span class="name">グー</span>
+      </button>
+      <button class="choice-btn" onclick="play('scissors')">
+        <span class="emoji">✌️</span>
+        <span class="name">チョキ</span>
+      </button>
+      <button class="choice-btn" onclick="play('paper')">
+        <span class="emoji">🖐️</span>
+        <span class="name">パー</span>
+      </button>
+    </div>
+
+    <button class="reset-btn" onclick="resetScore()">スコアをリセット</button>
+
+    <div class="history">
+      <div class="history-title">履歴</div>
+      <div class="history-list" id="history-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const CHOICES = {
+      rock:     { emoji: '✊', label: 'グー' },
+      scissors: { emoji: '✌️', label: 'チョキ' },
+      paper:    { emoji: '🖐️', label: 'パー' },
+    };
+
+    // rock beats scissors, scissors beats paper, paper beats rock
+    const WINS_AGAINST = { rock: 'scissors', scissors: 'paper', paper: 'rock' };
+
+    let scores = { win: 0, draw: 0, lose: 0 };
+    let history = [];
+    let isAnimating = false;
+
+    function play(playerChoice) {
+      if (isAnimating) return;
+      isAnimating = true;
+
+      const cpuChoice = randomChoice();
+
+      // Shake animation
+      const playerHand = document.getElementById('player-hand');
+      const cpuHand    = document.getElementById('cpu-hand');
+
+      playerHand.classList.add('shake');
+      cpuHand.classList.add('shake');
+
+      setTimeout(() => {
+        playerHand.classList.remove('shake');
+        cpuHand.classList.remove('shake');
+
+        playerHand.textContent = CHOICES[playerChoice].emoji;
+        cpuHand.textContent    = CHOICES[cpuChoice].emoji;
+
+        const result = getResult(playerChoice, cpuChoice);
+        updateScore(result);
+        showResult(result, playerChoice, cpuChoice);
+        addHistory(result, playerChoice, cpuChoice);
+
+        isAnimating = false;
+      }, 500);
+    }
+
+    function randomChoice() {
+      const keys = Object.keys(CHOICES);
+      return keys[Math.floor(Math.random() * keys.length)];
+    }
+
+    function getResult(player, cpu) {
+      if (player === cpu) return 'draw';
+      if (WINS_AGAINST[player] === cpu) return 'win';
+      return 'lose';
+    }
+
+    function updateScore(result) {
+      scores[result]++;
+      document.getElementById('win-count').textContent  = scores.win;
+      document.getElementById('draw-count').textContent = scores.draw;
+      document.getElementById('lose-count').textContent = scores.lose;
+    }
+
+    function showResult(result, playerChoice, cpuChoice) {
+      const banner = document.getElementById('result-banner');
+      const messages = {
+        win:  `🎉 あなたの勝ち！（${CHOICES[playerChoice].label} > ${CHOICES[cpuChoice].label}）`,
+        lose: `😢 あなたの負け…（${CHOICES[playerChoice].label} < ${CHOICES[cpuChoice].label}）`,
+        draw: `🤝 あいこ！（${CHOICES[playerChoice].label} = ${CHOICES[cpuChoice].label}）`,
+      };
+      banner.textContent = messages[result];
+      banner.className = `result-banner ${result}`;
+    }
+
+    function addHistory(result, playerChoice, cpuChoice) {
+      history.unshift({ result, playerChoice, cpuChoice });
+      if (history.length > 30) history.pop();
+
+      const list = document.getElementById('history-list');
+      list.innerHTML = history.map(h => {
+        const labels = { win: '勝', draw: '引', lose: '負' };
+        return `<span class="history-item ${h.result}">${CHOICES[h.playerChoice].emoji}${labels[h.result]}${CHOICES[h.cpuChoice].emoji}</span>`;
+      }).join('');
+    }
+
+    function resetScore() {
+      scores = { win: 0, draw: 0, lose: 0 };
+      history = [];
+      document.getElementById('win-count').textContent  = 0;
+      document.getElementById('draw-count').textContent = 0;
+      document.getElementById('lose-count').textContent = 0;
+      document.getElementById('result-banner').textContent = '';
+      document.getElementById('result-banner').className = 'result-banner';
+      document.getElementById('history-list').innerHTML = '';
+      document.getElementById('player-hand').textContent = '🤜';
+      document.getElementById('cpu-hand').textContent    = '🤛';
+    }
+  </script>
+</body>
+</html>
