@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>足つぼ反射区マップ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      color: #eee;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 6px;
+      background: linear-gradient(90deg, #f8d7a0, #f4a261);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.1em;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #aaa;
+      font-size: 0.85rem;
+      margin-bottom: 30px;
+    }
+
+    .layout {
+      display: flex;
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .foot-section {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 20px;
+      flex: 1;
+      min-width: 320px;
+      max-width: 480px;
+    }
+
+    .foot-section h2 {
+      text-align: center;
+      margin-bottom: 14px;
+      font-size: 1.1rem;
+      color: #f4a261;
+    }
+
+    svg.foot-map {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Zone colors */
+    .zone-head    { fill: #e74c3c; }
+    .zone-chest   { fill: #e67e22; }
+    .zone-abdomen { fill: #f1c40f; }
+    .zone-pelvis  { fill: #2ecc71; }
+    .zone-spine   { fill: #3498db; }
+    .zone-organ   { fill: #9b59b6; }
+    .zone-limb    { fill: #1abc9c; }
+
+    .zone-area {
+      opacity: 0.82;
+      cursor: pointer;
+      transition: opacity 0.2s, filter 0.2s;
+    }
+    .zone-area:hover {
+      opacity: 1;
+      filter: brightness(1.3) drop-shadow(0 0 6px rgba(255,255,255,0.5));
+    }
+
+    .zone-label {
+      font-size: 9px;
+      fill: #fff;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      pointer-events: none;
+      font-weight: bold;
+      text-shadow: 0 1px 2px #000;
+    }
+
+    /* Legend */
+    .legend {
+      max-width: 1100px;
+      margin: 24px auto 0;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 20px 24px;
+    }
+
+    .legend h3 {
+      text-align: center;
+      margin-bottom: 16px;
+      color: #f4a261;
+      font-size: 1rem;
+    }
+
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .legend-item:hover {
+      background: rgba(255,255,255,0.12);
+    }
+
+    .legend-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .legend-text strong {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 2px;
+    }
+    .legend-text span {
+      font-size: 0.72rem;
+      color: #bbb;
+      line-height: 1.4;
+    }
+
+    /* Detail panel */
+    #detail-panel {
+      max-width: 1100px;
+      margin: 20px auto 0;
+      background: rgba(244,162,97,0.12);
+      border: 1px solid rgba(244,162,97,0.4);
+      border-radius: 16px;
+      padding: 18px 24px;
+      display: none;
+    }
+    #detail-panel h4 { color: #f4a261; margin-bottom: 6px; font-size: 1rem; }
+    #detail-panel p  { color: #ddd; font-size: 0.85rem; line-height: 1.7; }
+
+    .tip {
+      text-align: center;
+      margin-top: 24px;
+      color: #888;
+      font-size: 0.75rem;
+    }
+
+    .download-btn {
+      display: block;
+      width: fit-content;
+      margin: 20px auto 0;
+      padding: 12px 28px;
+      background: linear-gradient(90deg, #f8d7a0, #f4a261);
+      color: #1a1a2e;
+      font-weight: bold;
+      font-size: 0.95rem;
+      font-family: inherit;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.15s;
+      letter-spacing: 0.05em;
+    }
+    .download-btn:hover { opacity: 0.88; transform: translateY(-2px); }
+
+    @media (max-width: 700px) {
+      h1 { font-size: 1.4rem; }
+      .foot-section { min-width: 280px; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>足つぼ 反射区マップ</h1>
+<p class="subtitle">各エリアにマウスを乗せると詳細が表示されます</p>
+
+<div class="layout">
+
+  <!-- 左足（内側から見た図：右に親指） -->
+  <div class="foot-section">
+    <h2>左足（裏面）</h2>
+    <svg class="foot-map" viewBox="0 0 220 420" xmlns="http://www.w3.org/2000/svg">
+      <!-- 足の輪郭 -->
+      <defs>
+        <clipPath id="left-foot-clip">
+          <!-- 親指側が左、小指側が右の足裏シルエット -->
+          <path d="
+            M 60,20
+            C 50,10 30,8 22,18
+            C 14,28 18,48 28,55
+            C 20,60 16,72 22,82
+            C 16,88 14,100 20,108
+            C 14,114 12,128 20,136
+            C 14,142 16,158 26,162
+            C 30,168 36,170 44,170
+            C 48,185 52,210 54,240
+            C 56,270 56,310 54,340
+            C 52,365 50,385 60,400
+            C 70,412 90,415 110,415
+            C 130,415 150,412 162,400
+            C 172,388 170,368 168,348
+            C 166,320 164,290 164,260
+            C 164,230 166,200 168,178
+            C 172,170 178,166 180,158
+            C 190,152 194,138 188,130
+            C 196,122 198,108 190,102
+            C 196,94 196,80 188,74
+            C 194,66 192,52 182,46
+            C 178,38 168,30 158,25
+            C 148,18 130,15 110,15
+            C 90,15 70,18 60,20
+            Z
+          "/>
+        </clipPath>
+      </defs>
+
+      <!-- 足の背景 -->
+      <path d="
+        M 60,20 C 50,10 30,8 22,18 C 14,28 18,48 28,55
+        C 20,60 16,72 22,82 C 16,88 14,100 20,108
+        C 14,114 12,128 20,136 C 14,142 16,158 26,162
+        C 30,168 36,170 44,170
+        C 48,185 52,210 54,240 C 56,270 56,310 54,340
+        C 52,365 50,385 60,400 C 70,412 90,415 110,415
+        C 130,415 150,412 162,400 C 172,388 170,368 168,348
+        C 166,320 164,290 164,260 C 164,230 166,200 168,178
+        C 172,170 178,166 180,158 C 190,152 194,138 188,130
+        C 196,122 198,108 190,102 C 196,94 196,80 188,74
+        C 194,66 192,52 182,46 C 178,38 168,30 158,25
+        C 148,18 130,15 110,15 C 90,15 70,18 60,20 Z
+      " fill="#d4b896" stroke="#b8906a" stroke-width="2"/>
+
+      <!-- ===== 反射区ゾーン ===== -->
+      <g clip-path="url(#left-foot-clip)">
+
+        <!-- 頭・脳（親指） -->
+        <ellipse class="zone-area zone-head" cx="35" cy="35" rx="18" ry="24"
+          data-name="頭・脳" data-desc="頭痛・不眠・ストレス解消に効果的。親指全体が対応。"/>
+        <text class="zone-label" x="35" y="35">頭・脳</text>
+
+        <!-- 副鼻腔（第2〜4趾） -->
+        <ellipse class="zone-area zone-head" cx="90" cy="28" rx="12" ry="16"
+          data-name="副鼻腔" data-desc="鼻づまり・花粉症・副鼻腔炎の緩和に。第2〜4趾の先端。"/>
+        <text class="zone-label" x="90" y="28">副鼻腔</text>
+
+        <!-- 目・耳（第3〜5趾付根） -->
+        <ellipse class="zone-area zone-head" cx="140" cy="40" rx="18" ry="12"
+          data-name="目・耳" data-desc="目の疲れ・耳鳴り・めまいに。第3〜5趾付け根周辺。"/>
+        <text class="zone-label" x="140" y="40">目・耳</text>
+
+        <!-- 頸・首（親指付け根） -->
+        <ellipse class="zone-area zone-head" cx="38" cy="68" rx="15" ry="12"
+          data-name="頸・首" data-desc="肩こり・首の張り・頭痛の改善に。親指の付け根部分。"/>
+        <text class="zone-label" x="38" y="68">首・頸</text>
+
+        <!-- 気管・食道（第1中足骨） -->
+        <rect class="zone-area zone-chest" x="22" y="85" width="28" height="45" rx="6"
+          data-name="気管・食道" data-desc="咳・喉の不調・逆流性食道炎に。土踏まずの内側上部。"/>
+        <text class="zone-label" x="36" y="108">気管</text>
+
+        <!-- 肺・気管支（中足骨中央） -->
+        <rect class="zone-area zone-chest" x="55" y="80" width="105" height="50" rx="6"
+          data-name="肺・気管支" data-desc="呼吸器系全般・咳・アレルギーに。足裏の上部中央エリア。"/>
+        <text class="zone-label" x="107" y="105">肺・気管支</text>
+
+        <!-- 心臓（左足のみ） -->
+        <ellipse class="zone-area zone-chest" cx="48" cy="148" rx="18" ry="16"
+          data-name="心臓（左足）" data-desc="心機能の改善・動悸・血圧調整に。左足のみに存在する反射区。"/>
+        <text class="zone-label" x="48" y="148">心臓</text>
+
+        <!-- 胃 -->
+        <ellipse class="zone-area zone-abdomen" cx="75" cy="155" rx="22" ry="18"
+          data-name="胃" data-desc="胃痛・胸やけ・消化不良・食欲不振に効果的。土踏まず上部の内側。"/>
+        <text class="zone-label" x="75" y="155">胃</text>
+
+        <!-- 膵臓 -->
+        <ellipse class="zone-area zone-abdomen" cx="115" cy="165" rx="18" ry="14"
+          data-name="膵臓" data-desc="血糖値の調整・消化酵素分泌のサポートに。胃の反射区の隣。"/>
+        <text class="zone-label" x="115" y="165">膵臓</text>
+
+        <!-- 十二指腸 -->
+        <ellipse class="zone-area zone-abdomen" cx="82" cy="192" rx="20" ry="14"
+          data-name="十二指腸" data-desc="消化促進・胃腸の働き改善に。土踏まずの中央内側。"/>
+        <text class="zone-label" x="82" y="192">十二指腸</text>
+
+        <!-- 小腸 -->
+        <rect class="zone-area zone-abdomen" x="55" y="210" width="100" height="70" rx="8"
+          data-name="小腸" data-desc="栄養吸収・消化機能・免疫力向上に。土踏まず中央の広いエリア。"/>
+        <text class="zone-label" x="105" y="248">小腸</text>
+
+        <!-- 脾臓（左足のみ） -->
+        <ellipse class="zone-area zone-organ" cx="48" cy="215" rx="16" ry="13"
+          data-name="脾臓（左足）" data-desc="免疫力強化・貧血改善・解毒作用に。左足のみに存在。"/>
+        <text class="zone-label" x="48" y="215">脾臓</text>
+
+        <!-- 大腸（横行結腸） -->
+        <rect class="zone-area zone-abdomen" x="30" y="283" width="150" height="22" rx="6"
+          data-name="横行結腸" data-desc="便秘・下痢・腸の蠕動運動促進に。足裏中央の横ライン。"/>
+        <text class="zone-label" x="105" y="295">横行結腸</text>
+
+        <!-- 下行結腸（左足） -->
+        <rect class="zone-area zone-abdomen" x="30" y="307" width="22" height="55" rx="6"
+          data-name="下行結腸" data-desc="便秘解消・腸の機能改善に。足裏の内側縦ライン。"/>
+        <text class="zone-label" x="41" y="335">下行</text>
+
+        <!-- 膀胱・尿管 -->
+        <ellipse class="zone-area zone-pelvis" cx="50" cy="373" rx="20" ry="16"
+          data-name="膀胱・尿管" data-desc="頻尿・むくみ・泌尿器系の改善に。かかと近くの内側。"/>
+        <text class="zone-label" x="50" y="373">膀胱</text>
+
+        <!-- 腎臓 -->
+        <ellipse class="zone-area zone-organ" cx="100" cy="310" rx="18" ry="14"
+          data-name="腎臓" data-desc="むくみ・デトックス・疲労回復・血圧調整に。足裏中央。"/>
+        <text class="zone-label" x="100" y="310">腎臓</text>
+
+        <!-- 生殖器・子宮・前立腺 -->
+        <ellipse class="zone-area zone-pelvis" cx="110" cy="390" rx="30" ry="18"
+          data-name="生殖器・子宮・前立腺" data-desc="生理痛・更年期症状・ホルモンバランス調整に。かかと中央。"/>
+        <text class="zone-label" x="110" y="390">生殖器</text>
+
+        <!-- 坐骨神経 -->
+        <rect class="zone-area zone-limb" x="158" y="305" width="16" height="80" rx="6"
+          data-name="坐骨神経" data-desc="腰痛・坐骨神経痛・足のしびれに。足裏の外側縦ライン。"/>
+        <text class="zone-label" x="166" y="345">坐骨</text>
+
+        <!-- 肝臓（右足と左足で位置が違う：左足は小さめ） -->
+        <ellipse class="zone-area zone-organ" cx="148" cy="210" rx="18" ry="15"
+          data-name="肝臓" data-desc="解毒・疲労回復・アルコール分解サポートに。足裏の外側上部。"/>
+        <text class="zone-label" x="148" y="210">肝臓</text>
+
+      </g>
+
+      <!-- 内側ライン（脊椎） -->
+      <path d="M 22,18 C 18,80 16,160 20,220 C 22,270 26,330 30,380 C 34,400 50,415 70,415"
+        fill="none" stroke="#3498db" stroke-width="4" stroke-dasharray="6,3" opacity="0.7"/>
+      <text style="font-size:9px;fill:#3498db;font-weight:bold;" x="8" y="230" transform="rotate(-90,8,230)">脊椎ライン</text>
+
+    </svg>
+  </div>
+
+  <!-- 右足 -->
+  <div class="foot-section">
+    <h2>右足（裏面）</h2>
+    <svg class="foot-map" viewBox="0 0 220 420" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id="right-foot-clip">
+          <path d="
+            M 160,20 C 170,10 190,8 198,18 C 206,28 202,48 192,55
+            C 200,60 204,72 198,82 C 204,88 206,100 200,108
+            C 206,114 208,128 200,136 C 206,142 204,158 194,162
+            C 190,168 184,170 176,170
+            C 172,185 168,210 166,240 C 164,270 164,310 166,340
+            C 168,365 170,385 160,400 C 150,412 130,415 110,415
+            C 90,415 70,412 58,400 C 48,388 50,368 52,348
+            C 54,320 56,290 56,260 C 56,230 54,200 52,178
+            C 48,170 42,166 40,158 C 30,152 26,138 32,130
+            C 24,122 22,108 30,102 C 24,94 24,80 32,74
+            C 26,66 28,52 38,46 C 42,38 52,30 62,25
+            C 72,18 90,15 110,15 C 130,15 150,18 160,20 Z
+          "/>
+        </clipPath>
+      </defs>
+
+      <path d="
+        M 160,20 C 170,10 190,8 198,18 C 206,28 202,48 192,55
+        C 200,60 204,72 198,82 C 204,88 206,100 200,108
+        C 206,114 208,128 200,136 C 206,142 204,158 194,162
+        C 190,168 184,170 176,170
+        C 172,185 168,210 166,240 C 164,270 164,310 166,340
+        C 168,365 170,385 160,400 C 150,412 130,415 110,415
+        C 90,415 70,412 58,400 C 48,388 50,368 52,348
+        C 54,320 56,290 56,260 C 56,230 54,200 52,178
+        C 48,170 42,166 40,158 C 30,152 26,138 32,130
+        C 24,122 22,108 30,102 C 24,94 24,80 32,74
+        C 26,66 28,52 38,46 C 42,38 52,30 62,25
+        C 72,18 90,15 110,15 C 130,15 150,18 160,20 Z
+      " fill="#d4b896" stroke="#b8906a" stroke-width="2"/>
+
+      <g clip-path="url(#right-foot-clip)">
+
+        <!-- 頭・脳 -->
+        <ellipse class="zone-area zone-head" cx="185" cy="35" rx="18" ry="24"
+          data-name="頭・脳" data-desc="頭痛・不眠・ストレス解消に効果的。親指全体が対応。"/>
+        <text class="zone-label" x="185" y="35">頭・脳</text>
+
+        <!-- 副鼻腔 -->
+        <ellipse class="zone-area zone-head" cx="130" cy="28" rx="12" ry="16"
+          data-name="副鼻腔" data-desc="鼻づまり・花粉症・副鼻腔炎の緩和に。第2〜4趾の先端。"/>
+        <text class="zone-label" x="130" y="28">副鼻腔</text>
+
+        <!-- 目・耳 -->
+        <ellipse class="zone-area zone-head" cx="80" cy="40" rx="18" ry="12"
+          data-name="目・耳" data-desc="目の疲れ・耳鳴り・めまいに。第3〜5趾付け根周辺。"/>
+        <text class="zone-label" x="80" y="40">目・耳</text>
+
+        <!-- 頸・首 -->
+        <ellipse class="zone-area zone-head" cx="182" cy="68" rx="15" ry="12"
+          data-name="頸・首" data-desc="肩こり・首の張り・頭痛の改善に。親指の付け根部分。"/>
+        <text class="zone-label" x="182" y="68">首・頸</text>
+
+        <!-- 気管・食道 -->
+        <rect class="zone-area zone-chest" x="170" y="85" width="28" height="45" rx="6"
+          data-name="気管・食道" data-desc="咳・喉の不調・逆流性食道炎に。土踏まずの内側上部。"/>
+        <text class="zone-label" x="184" y="108">気管</text>
+
+        <!-- 肺・気管支 -->
+        <rect class="zone-area zone-chest" x="60" y="80" width="105" height="50" rx="6"
+          data-name="肺・気管支" data-desc="呼吸器系全般・咳・アレルギーに。足裏の上部中央エリア。"/>
+        <text class="zone-label" x="112" y="105">肺・気管支</text>
+
+        <!-- 肝臓（右足は大きい） -->
+        <ellipse class="zone-area zone-organ" cx="72" cy="165" rx="26" ry="22"
+          data-name="肝臓（右足）" data-desc="解毒・疲労回復・アルコール分解サポートに。右足の土踏まず内側の広いエリア。"/>
+        <text class="zone-label" x="72" y="165">肝臓</text>
+
+        <!-- 胆嚢（右足のみ） -->
+        <ellipse class="zone-area zone-organ" cx="105" cy="172" rx="14" ry="12"
+          data-name="胆嚢（右足）" data-desc="胆石・脂質代謝・消化促進に。右足のみに存在。肝臓の隣。"/>
+        <text class="zone-label" x="105" y="172">胆嚢</text>
+
+        <!-- 胃 -->
+        <ellipse class="zone-area zone-abdomen" cx="155" cy="148" rx="20" ry="16"
+          data-name="胃" data-desc="胃痛・胸やけ・消化不良・食欲不振に効果的。右足の土踏まず上部内側。"/>
+        <text class="zone-label" x="155" y="148">胃</text>
+
+        <!-- 十二指腸 -->
+        <ellipse class="zone-area zone-abdomen" cx="145" cy="190" rx="20" ry="14"
+          data-name="十二指腸" data-desc="消化促進・胃腸の働き改善に。土踏まずの中央内側。"/>
+        <text class="zone-label" x="145" y="190">十二指腸</text>
+
+        <!-- 小腸 -->
+        <rect class="zone-area zone-abdomen" x="65" y="210" width="100" height="70" rx="8"
+          data-name="小腸" data-desc="栄養吸収・消化機能・免疫力向上に。土踏まず中央の広いエリア。"/>
+        <text class="zone-label" x="115" y="248">小腸</text>
+
+        <!-- 横行結腸 -->
+        <rect class="zone-area zone-abdomen" x="40" y="283" width="150" height="22" rx="6"
+          data-name="横行結腸" data-desc="便秘・下痢・腸の蠕動運動促進に。足裏中央の横ライン。"/>
+        <text class="zone-label" x="115" y="295">横行結腸</text>
+
+        <!-- 上行結腸（右足） -->
+        <rect class="zone-area zone-abdomen" x="170" y="307" width="22" height="55" rx="6"
+          data-name="上行結腸" data-desc="便秘解消・腸の機能改善に。右足外側の縦ライン。"/>
+        <text class="zone-label" x="181" y="335">上行</text>
+
+        <!-- 盲腸・虫垂（右足） -->
+        <ellipse class="zone-area zone-abdomen" cx="178" cy="368" rx="16" ry="13"
+          data-name="盲腸・虫垂（右足）" data-desc="免疫機能・腸内環境改善に。右足のかかと外側付近。"/>
+        <text class="zone-label" x="178" y="368">盲腸</text>
+
+        <!-- 膀胱・尿管 -->
+        <ellipse class="zone-area zone-pelvis" cx="170" cy="373" rx="20" ry="16"
+          data-name="膀胱・尿管" data-desc="頻尿・むくみ・泌尿器系の改善に。かかと近くの内側。"/>
+        <text class="zone-label" x="170" y="373">膀胱</text>
+
+        <!-- 腎臓 -->
+        <ellipse class="zone-area zone-organ" cx="118" cy="310" rx="18" ry="14"
+          data-name="腎臓" data-desc="むくみ・デトックス・疲労回復・血圧調整に。足裏中央。"/>
+        <text class="zone-label" x="118" y="310">腎臓</text>
+
+        <!-- 生殖器 -->
+        <ellipse class="zone-area zone-pelvis" cx="110" cy="390" rx="30" ry="18"
+          data-name="生殖器・子宮・前立腺" data-desc="生理痛・更年期症状・ホルモンバランス調整に。かかと中央。"/>
+        <text class="zone-label" x="110" y="390">生殖器</text>
+
+        <!-- 坐骨神経 -->
+        <rect class="zone-area zone-limb" x="46" y="305" width="16" height="80" rx="6"
+          data-name="坐骨神経" data-desc="腰痛・坐骨神経痛・足のしびれに。足裏の外側縦ライン。"/>
+        <text class="zone-label" x="54" y="345">坐骨</text>
+
+      </g>
+
+      <!-- 脊椎ライン（右足：右端が内側） -->
+      <path d="M 198,18 C 202,80 204,160 200,220 C 198,270 194,330 190,380 C 186,400 170,415 150,415"
+        fill="none" stroke="#3498db" stroke-width="4" stroke-dasharray="6,3" opacity="0.7"/>
+      <text style="font-size:9px;fill:#3498db;font-weight:bold;" x="212" y="230" transform="rotate(90,212,230)">脊椎ライン</text>
+
+    </svg>
+  </div>
+</div>
+
+<!-- 凡例 -->
+<div class="legend">
+  <h3>反射区カラーガイド</h3>
+  <div class="legend-grid">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#e74c3c;"></div>
+      <div class="legend-text">
+        <strong>頭部系（赤）</strong>
+        <span>頭・脳・目・耳・鼻・首<br>頭痛・不眠・感覚器系</span>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#e67e22;"></div>
+      <div class="legend-text">
+        <strong>胸部系（オレンジ）</strong>
+        <span>肺・気管支・心臓・食道<br>呼吸器・循環器系</span>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#f1c40f;"></div>
+      <div class="legend-text">
+        <strong>腹部・消化器系（黄）</strong>
+        <span>胃・小腸・大腸・膵臓<br>消化・便秘・下痢</span>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#9b59b6;"></div>
+      <div class="legend-text">
+        <strong>主要臓器（紫）</strong>
+        <span>肝臓・腎臓・脾臓・胆嚢<br>解毒・デトックス・代謝</span>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#2ecc71;"></div>
+      <div class="legend-text">
+        <strong>骨盤・泌尿器系（緑）</strong>
+        <span>膀胱・生殖器・子宮<br>むくみ・生理痛・ホルモン</span>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#3498db;"></div>
+      <div class="legend-text">
+        <strong>脊椎ライン（青）</strong>
+        <span>全脊椎・神経系<br>腰痛・背中・姿勢</span>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#1abc9c;"></div>
+      <div class="legend-text">
+        <strong>神経・四肢系（青緑）</strong>
+        <span>坐骨神経・末梢神経<br>しびれ・神経痛</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 詳細パネル -->
+<div id="detail-panel">
+  <h4 id="detail-name"></h4>
+  <p id="detail-desc"></p>
+</div>
+
+<p class="tip">※ この図は学習・参考用です。医療的な診断・治療の代替にはなりません。</p>
+
+<button class="download-btn" onclick="downloadPage()">ダウンロード（HTMLファイル）</button>
+
+<script>
+  const zones = document.querySelectorAll('.zone-area');
+  const panel = document.getElementById('detail-panel');
+  const nameEl = document.getElementById('detail-name');
+  const descEl = document.getElementById('detail-desc');
+
+  function downloadPage() {
+    const html = document.documentElement.outerHTML;
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '足つぼ反射区マップ.html';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  zones.forEach(z => {
+    z.addEventListener('mouseenter', () => {
+      nameEl.textContent = '【' + z.dataset.name + '】';
+      descEl.textContent = z.dataset.desc;
+      panel.style.display = 'block';
+    });
+    z.addEventListener('mouseleave', () => {
+      panel.style.display = 'none';
+    });
+    z.addEventListener('click', () => {
+      nameEl.textContent = '【' + z.dataset.name + '】';
+      descEl.textContent = z.dataset.desc;
+      panel.style.display = 'block';
+    });
+  });
+</script>
+</body>
+</html>
