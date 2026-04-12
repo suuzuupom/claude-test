@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>バケットリスト</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0f4f8;
+      --surface: #ffffff;
+      --surface2: #f7fafc;
+      --text: #333333;
+      --text-muted: #888888;
+      --text-faint: #bbbbbb;
+      --border: #e2e8f0;
+      --shadow-sm: rgba(0,0,0,0.06);
+      --shadow-md: rgba(0,0,0,0.08);
+      --accent1: #f6ad55;
+      --accent2: #ed8936;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1117;
+        --surface: #1e2130;
+        --surface2: #252a3a;
+        --text: #e2e8f0;
+        --text-muted: #8892a4;
+        --text-faint: #4a5568;
+        --border: #2d3748;
+        --shadow-sm: rgba(0,0,0,0.3);
+        --shadow-md: rgba(0,0,0,0.4);
+      }
+    }
+
+    body.dark {
+      --bg: #0f1117;
+      --surface: #1e2130;
+      --surface2: #252a3a;
+      --text: #e2e8f0;
+      --text-muted: #8892a4;
+      --text-faint: #4a5568;
+      --border: #2d3748;
+      --shadow-sm: rgba(0,0,0,0.3);
+      --shadow-md: rgba(0,0,0,0.4);
+    }
+
+    body.light {
+      --bg: #f0f4f8;
+      --surface: #ffffff;
+      --surface2: #f7fafc;
+      --text: #333333;
+      --text-muted: #888888;
+      --text-faint: #bbbbbb;
+      --border: #e2e8f0;
+      --shadow-sm: rgba(0,0,0,0.06);
+      --shadow-md: rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: 'Hiragino Sans', 'Meiryo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 60px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    header {
+      background: linear-gradient(135deg, #f6ad55, #ed64a6);
+      color: white;
+      padding: 20px 16px 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      position: relative;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    header .subtitle {
+      font-size: 0.85rem;
+      opacity: 0.85;
+      margin-top: 4px;
+    }
+
+    .dark-toggle {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.2);
+      border: none;
+      border-radius: 20px;
+      padding: 6px 12px;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .dark-toggle:active { background: rgba(255,255,255,0.35); }
+
+    /* Progress */
+    .progress-bar-wrap {
+      margin: 16px 16px 8px;
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 2px 8px var(--shadow-md);
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+
+    .progress-header .label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .progress-header .count {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ed64a6;
+    }
+
+    .bar-bg {
+      height: 10px;
+      background: var(--surface2);
+      border-radius: 99px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #f6ad55, #ed64a6);
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    /* Filter tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin: 0 16px 12px;
+    }
+
+    .filter-tab {
+      flex: 1;
+      padding: 8px 4px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-family: inherit;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .filter-tab.active {
+      background: linear-gradient(135deg, #f6ad55, #ed64a6);
+      color: white;
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    /* Add form */
+    .add-form {
+      margin: 0 16px 16px;
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 2px 8px var(--shadow-md);
+      display: flex;
+      gap: 8px;
+    }
+
+    .add-input {
+      flex: 1;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: var(--surface2);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .add-input:focus { border-color: #f6ad55; }
+    .add-input::placeholder { color: var(--text-faint); }
+
+    .add-btn {
+      background: linear-gradient(135deg, #f6ad55, #ed64a6);
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+
+    .add-btn:active { opacity: 0.8; }
+
+    /* Category selector */
+    .category-row {
+      display: flex;
+      gap: 6px;
+      margin: 0 16px 12px;
+      flex-wrap: wrap;
+    }
+
+    .cat-chip {
+      padding: 5px 12px;
+      border-radius: 99px;
+      font-size: 0.78rem;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .cat-chip.selected {
+      color: white;
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    .cat-chip[data-cat="travel"].selected    { background: #4299e1; }
+    .cat-chip[data-cat="food"].selected      { background: #48bb78; }
+    .cat-chip[data-cat="experience"].selected { background: #ed64a6; }
+    .cat-chip[data-cat="learning"].selected  { background: #9f7aea; }
+    .cat-chip[data-cat="other"].selected     { background: #718096; }
+
+    /* Task list */
+    .task-list { margin: 0 16px; }
+
+    .task-item {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      box-shadow: 0 1px 4px var(--shadow-sm);
+      transition: opacity 0.3s, background 0.3s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      position: relative;
+    }
+
+    .task-item.done {
+      opacity: 0.5;
+    }
+
+    .task-item.done .task-name {
+      text-decoration: line-through;
+      color: var(--text-faint);
+    }
+
+    .check-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2.5px solid var(--border);
+      background: var(--surface2);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      margin-top: 2px;
+    }
+
+    .task-item.done .check-circle {
+      background: linear-gradient(135deg, #f6ad55, #ed64a6);
+      border-color: transparent;
+      color: white;
+    }
+
+    .task-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .task-name {
+      font-size: 1rem;
+      color: var(--text);
+      line-height: 1.4;
+      word-break: break-all;
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 5px;
+    }
+
+    .cat-badge {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-weight: 600;
+    }
+
+    .cat-badge[data-cat="travel"]     { background: #bee3f8; color: #2b6cb0; }
+    .cat-badge[data-cat="food"]       { background: #c6f6d5; color: #276749; }
+    .cat-badge[data-cat="experience"] { background: #fed7e2; color: #97266d; }
+    .cat-badge[data-cat="learning"]   { background: #e9d8fd; color: #553c9a; }
+    .cat-badge[data-cat="other"]      { background: var(--surface2); color: var(--text-muted); }
+
+    body.dark .cat-badge[data-cat="travel"]     { background: #2a4a6b; color: #90cdf4; }
+    body.dark .cat-badge[data-cat="food"]       { background: #1a4731; color: #9ae6b4; }
+    body.dark .cat-badge[data-cat="experience"] { background: #521b41; color: #fbb6ce; }
+    body.dark .cat-badge[data-cat="learning"]   { background: #3d2a6b; color: #d6bcfa; }
+    body.dark .cat-badge[data-cat="other"]      { background: var(--surface2); color: var(--text-muted); }
+
+    .task-date {
+      font-size: 0.72rem;
+      color: var(--text-faint);
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: var(--text-faint);
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .delete-btn:hover { color: #e53e3e; background: #fff5f5; }
+    body.dark .delete-btn:hover { background: #3d2020; }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-faint);
+    }
+
+    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state .msg { font-size: 1rem; }
+
+    .complete-banner {
+      display: none;
+      text-align: center;
+      padding: 24px 16px;
+      animation: popIn 0.4s ease;
+    }
+
+    .complete-banner.show { display: block; }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .complete-banner .big-icon { font-size: 3.5rem; margin-bottom: 8px; }
+    .complete-banner .msg { font-size: 1.1rem; font-weight: 700; color: #ed64a6; }
+    .complete-banner .sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+
+    .section-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin: 16px 16px 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🪣 バケットリスト</h1>
+  <div class="subtitle">死ぬまでにやりたいことリスト</div>
+  <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()">🌙</button>
+</header>
+
+<div class="progress-bar-wrap">
+  <div class="progress-header">
+    <span class="label">達成状況</span>
+    <span class="count"><span id="done-count">0</span> / <span id="total-count">0</span> 達成</span>
+  </div>
+  <div class="bar-bg">
+    <div class="bar-fill" id="bar-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<div class="add-form">
+  <input type="text" class="add-input" id="add-input" placeholder="やりたいことを追加..." maxlength="80">
+  <button class="add-btn" onclick="addItem()">＋</button>
+</div>
+
+<div class="category-row" id="cat-select">
+  <button class="cat-chip selected" data-cat="travel"     onclick="selectCat('travel')">✈️ 旅行</button>
+  <button class="cat-chip"          data-cat="food"       onclick="selectCat('food')">🍜 グルメ</button>
+  <button class="cat-chip"          data-cat="experience" onclick="selectCat('experience')">🎯 体験</button>
+  <button class="cat-chip"          data-cat="learning"   onclick="selectCat('learning')">📚 学び</button>
+  <button class="cat-chip"          data-cat="other"      onclick="selectCat('other')">✨ その他</button>
+</div>
+
+<div class="filter-tabs">
+  <button class="filter-tab active" data-filter="all"     onclick="setFilter('all')">すべて</button>
+  <button class="filter-tab"        data-filter="pending" onclick="setFilter('pending')">未達成</button>
+  <button class="filter-tab"        data-filter="done"    onclick="setFilter('done')">達成済み</button>
+</div>
+
+<div id="task-list" class="task-list"></div>
+
+<div class="complete-banner" id="complete-banner">
+  <div class="big-icon">🌟</div>
+  <div class="msg">全部達成！素晴らしい！</div>
+  <div class="sub">新しい夢を追加しよう</div>
+</div>
+
+<script>
+  const CAT_LABELS = {
+    travel:     '✈️ 旅行',
+    food:       '🍜 グルメ',
+    experience: '🎯 体験',
+    learning:   '📚 学び',
+    other:      '✨ その他',
+  };
+
+  let items = [];
+  let selectedCat = 'travel';
+  let filter = 'all';
+
+  function load() {
+    try {
+      items = JSON.parse(localStorage.getItem('bucket-list-items') || '[]');
+    } catch(e) { items = []; }
+  }
+
+  function save() {
+    localStorage.setItem('bucket-list-items', JSON.stringify(items));
+  }
+
+  function addItem() {
+    const input = document.getElementById('add-input');
+    const name = input.value.trim();
+    if (!name) return;
+    items.unshift({
+      id: Date.now().toString(),
+      name,
+      cat: selectedCat,
+      done: false,
+      createdAt: new Date().toISOString(),
+      doneAt: null,
+    });
+    save();
+    input.value = '';
+    render();
+  }
+
+  function toggleItem(id) {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    item.done = !item.done;
+    item.doneAt = item.done ? new Date().toISOString() : null;
+    save();
+    render();
+  }
+
+  function deleteItem(id) {
+    items = items.filter(i => i.id !== id);
+    save();
+    render();
+  }
+
+  function selectCat(cat) {
+    selectedCat = cat;
+    document.querySelectorAll('.cat-chip').forEach(el => {
+      el.classList.toggle('selected', el.dataset.cat === cat);
+    });
+  }
+
+  function setFilter(f) {
+    filter = f;
+    document.querySelectorAll('.filter-tab').forEach(el => {
+      el.classList.toggle('active', el.dataset.filter === f);
+    });
+    render();
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+  }
+
+  function render() {
+    const total = items.length;
+    const doneCount = items.filter(i => i.done).length;
+
+    document.getElementById('done-count').textContent = doneCount;
+    document.getElementById('total-count').textContent = total;
+    document.getElementById('bar-fill').style.width =
+      total === 0 ? '0%' : (doneCount / total * 100) + '%';
+
+    let visible = items;
+    if (filter === 'pending') visible = items.filter(i => !i.done);
+    if (filter === 'done')    visible = items.filter(i => i.done);
+
+    const list = document.getElementById('task-list');
+
+    if (visible.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">${filter === 'done' ? '🏆' : '🌈'}</div>
+          <div class="msg">${filter === 'done' ? 'まだ達成したものがありません' : 'リストにアイテムを追加しよう！'}</div>
+        </div>`;
+    } else {
+      list.innerHTML = visible.map(item => {
+        const meta = item.done
+          ? `<span class="task-date">✅ ${formatDate(item.doneAt)} 達成</span>`
+          : `<span class="task-date">追加: ${formatDate(item.createdAt)}</span>`;
+        return `
+          <div class="task-item ${item.done ? 'done' : ''}">
+            <div class="check-circle" onclick="toggleItem('${item.id}')">${item.done ? '✓' : ''}</div>
+            <div class="task-body">
+              <div class="task-name">${escHtml(item.name)}</div>
+              <div class="task-meta">
+                <span class="cat-badge" data-cat="${item.cat}">${CAT_LABELS[item.cat] || item.cat}</span>
+                ${meta}
+              </div>
+            </div>
+            <button class="delete-btn" onclick="deleteItem('${item.id}')" title="削除">🗑️</button>
+          </div>`;
+      }).join('');
+    }
+
+    // Show celebration only when all items done and there are items
+    const banner = document.getElementById('complete-banner');
+    banner.classList.toggle('show', total > 0 && doneCount === total);
+  }
+
+  function escHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // Enter key submits
+  document.getElementById('add-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addItem();
+  });
+
+  // Dark mode
+  function applyTheme(dark) {
+    document.body.classList.toggle('dark', dark);
+    document.body.classList.toggle('light', !dark);
+    document.getElementById('dark-toggle').textContent = dark ? '☀️' : '🌙';
+  }
+
+  function toggleDark() {
+    const isDark = document.body.classList.contains('dark');
+    const next = !isDark;
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+    applyTheme(next);
+  }
+
+  (function initTheme() {
+    const saved = localStorage.getItem('theme');
+    if (saved) {
+      applyTheme(saved === 'dark');
+    } else {
+      applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+  })();
+
+  load();
+  render();
+</script>
+</body>
+</html>
