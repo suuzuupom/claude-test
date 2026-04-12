@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>家事タスク管理</title>
+  <title>家事チェックリスト</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -81,10 +81,11 @@
       letter-spacing: 0.05em;
     }
 
-    header p {
-      font-size: 0.8rem;
-      opacity: 0.85;
-      margin-top: 4px;
+    .date-display {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-top: 6px;
+      font-weight: 500;
     }
 
     .dark-toggle {
@@ -104,190 +105,96 @@
 
     .dark-toggle:active { background: rgba(255,255,255,0.35); }
 
-    .add-form {
+    .progress-bar-wrap {
+      margin: 16px 16px 8px;
       background: var(--surface);
-      margin: 16px;
       border-radius: 16px;
       padding: 16px;
       box-shadow: 0 2px 8px var(--shadow-md);
     }
 
-    .add-form h2 {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .form-row {
+    .progress-header {
       display: flex;
-      gap: 8px;
+      justify-content: space-between;
+      align-items: baseline;
       margin-bottom: 10px;
     }
 
-    .form-row input[type="text"] {
-      flex: 1;
-      padding: 12px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      font-size: 1rem;
-      font-family: inherit;
-      outline: none;
-      background: var(--surface2);
-      color: var(--text);
-      transition: border-color 0.2s, background 0.3s;
-    }
-
-    .form-row input[type="text"]::placeholder { color: var(--text-faint); }
-
-    .form-row input[type="text"]:focus {
-      border-color: #667eea;
-      background: var(--surface);
-    }
-
-    .category-select {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      background: var(--surface2);
-      outline: none;
-      color: var(--text);
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.3s;
-    }
-
-    .category-select:focus {
-      border-color: #667eea;
-      background: var(--surface);
-    }
-
-    .btn-add {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 18px;
-      font-size: 1.3rem;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-      line-height: 1;
-    }
-
-    .btn-add:active {
-      opacity: 0.85;
-      transform: scale(0.96);
-    }
-
-    .filter-tabs {
-      display: flex;
-      gap: 8px;
-      padding: 0 16px;
-      overflow-x: auto;
-      scrollbar-width: none;
-      margin-bottom: 8px;
-    }
-
-    .filter-tabs::-webkit-scrollbar { display: none; }
-
-    .filter-tab {
-      white-space: nowrap;
-      padding: 7px 14px;
-      border-radius: 20px;
-      border: none;
+    .progress-header .label {
       font-size: 0.85rem;
-      font-family: inherit;
-      cursor: pointer;
-      background: var(--surface);
       color: var(--text-muted);
-      box-shadow: 0 1px 4px var(--shadow-sm);
-      transition: all 0.2s;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
     }
 
-    .filter-tab.active {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      box-shadow: 0 2px 8px rgba(102,126,234,0.4);
-    }
-
-    .stats {
-      display: flex;
-      gap: 10px;
-      margin: 12px 16px;
-    }
-
-    .stat-card {
-      flex: 1;
-      background: var(--surface);
-      border-radius: 12px;
-      padding: 12px;
-      text-align: center;
-      box-shadow: 0 1px 4px var(--shadow-sm);
-    }
-
-    .stat-card .num {
-      font-size: 1.5rem;
+    .progress-header .count {
+      font-size: 1rem;
       font-weight: 700;
       color: #667eea;
     }
 
-    .stat-card .label {
-      font-size: 0.72rem;
+    .bar-bg {
+      height: 10px;
+      background: var(--surface2);
+      border-radius: 99px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    .reset-btn {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 8px 16px 16px;
+      padding: 12px;
+      background: var(--surface);
       color: var(--text-muted);
-      margin-top: 2px;
+      border: 1.5px dashed var(--border);
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .reset-btn:active {
+      background: var(--surface2);
+      color: #e53e3e;
+      border-color: #e53e3e;
     }
 
     .task-list {
       margin: 0 16px;
     }
 
-    .category-group {
-      margin-bottom: 16px;
-    }
-
-    .category-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 8px;
-      padding-left: 4px;
-    }
-
-    .category-label span.dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-
     .task-item {
       background: var(--surface);
-      border-radius: 12px;
-      padding: 14px 14px;
-      margin-bottom: 8px;
+      border-radius: 14px;
+      padding: 16px 14px;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       box-shadow: 0 1px 4px var(--shadow-sm);
-      transition: opacity 0.2s, transform 0.2s, background 0.3s;
-      animation: slideIn 0.2s ease;
+      transition: opacity 0.3s, background 0.3s;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-8px); }
-      to   { opacity: 1; transform: translateY(0); }
+    .task-item:active {
+      transform: scale(0.98);
     }
 
     .task-item.done {
-      opacity: 0.5;
+      opacity: 0.45;
     }
 
     .task-item.done .task-name {
@@ -295,257 +202,164 @@
       color: var(--text-faint);
     }
 
-    .check-btn {
-      width: 26px;
-      height: 26px;
+    .check-circle {
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
-      border: 2px solid var(--border);
+      border: 2.5px solid var(--border);
       background: var(--surface2);
-      cursor: pointer;
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.9rem;
+      font-size: 1rem;
       transition: all 0.2s;
     }
 
-    .task-item.done .check-btn {
-      background: #667eea;
-      border-color: #667eea;
+    .task-item.done .check-circle {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-color: transparent;
       color: white;
+    }
+
+    .task-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      width: 28px;
+      text-align: center;
     }
 
     .task-name {
       flex: 1;
-      font-size: 0.97rem;
+      font-size: 1rem;
       color: var(--text);
       line-height: 1.4;
     }
 
-    .task-category-badge {
-      font-size: 0.72rem;
-      padding: 3px 8px;
-      border-radius: 10px;
-      font-weight: 600;
-      flex-shrink: 0;
-    }
-
-    .btn-delete {
-      background: none;
-      border: none;
-      color: var(--text-faint);
-      font-size: 1.1rem;
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 6px;
-      transition: color 0.2s;
-      line-height: 1;
-    }
-
-    .btn-delete:active { color: #e53e3e; }
-
-    .empty {
+    .complete-banner {
+      display: none;
       text-align: center;
-      padding: 48px 16px;
-      color: var(--text-faint);
-      font-size: 0.95rem;
+      padding: 24px 16px;
+      animation: popIn 0.4s ease;
     }
 
-    .empty .icon { font-size: 3rem; margin-bottom: 12px; }
+    .complete-banner.show { display: block; }
 
-    /* カテゴリカラー */
-    .cat-cleaning  { background: #ebf8ff; color: #2b6cb0; }
-    .cat-laundry   { background: #e0f7fa; color: #00796b; }
-    .cat-cooking   { background: #fff3e0; color: #e65100; }
-    .cat-shopping  { background: #fce4ec; color: #c2185b; }
-    .cat-childcare { background: #f3e5f5; color: #7b1fa2; }
-    .cat-other     { background: #f5f5f5; color: #616161; }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to   { opacity: 1; transform: scale(1); }
+    }
 
-    .dot-cleaning  { background: #2b6cb0; }
-    .dot-laundry   { background: #00796b; }
-    .dot-cooking   { background: #e65100; }
-    .dot-shopping  { background: #c2185b; }
-    .dot-childcare { background: #7b1fa2; }
-    .dot-other     { background: #616161; }
+    .complete-banner .big-icon { font-size: 3.5rem; margin-bottom: 8px; }
+    .complete-banner .msg { font-size: 1.1rem; font-weight: 700; color: #667eea; }
+    .complete-banner .sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>家事タスク管理</h1>
-  <p id="date-display"></p>
-  <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()" title="ダークモード切替">🌙</button>
+  <h1>🏠 家事チェックリスト</h1>
+  <div class="date-display" id="date-display"></div>
+  <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()">🌙</button>
 </header>
 
-<div class="add-form">
-  <h2>タスクを追加</h2>
-  <div class="form-row">
-    <input type="text" id="task-input" placeholder="例：洗い物をする" maxlength="50">
-    <button class="btn-add" onclick="addTask()">＋</button>
+<div class="progress-bar-wrap">
+  <div class="progress-header">
+    <span class="label">今日の進捗</span>
+    <span class="count"><span id="done-count">0</span> / <span id="total-count">0</span> 完了</span>
   </div>
-  <select class="category-select" id="category-select">
-    <option value="cleaning">🧹 掃除</option>
-    <option value="laundry">👕 洗濯</option>
-    <option value="cooking">🍳 料理</option>
-    <option value="shopping">🛒 買い物</option>
-    <option value="childcare">👶 育児</option>
-    <option value="other">📝 その他</option>
-  </select>
-</div>
-
-<div class="stats">
-  <div class="stat-card">
-    <div class="num" id="stat-total">0</div>
-    <div class="label">合計</div>
+  <div class="bar-bg">
+    <div class="bar-fill" id="bar-fill" style="width:0%"></div>
   </div>
-  <div class="stat-card">
-    <div class="num" id="stat-done">0</div>
-    <div class="label">完了</div>
-  </div>
-  <div class="stat-card">
-    <div class="num" id="stat-remaining">0</div>
-    <div class="label">残り</div>
-  </div>
-</div>
-
-<div class="filter-tabs" id="filter-tabs">
-  <button class="filter-tab active" data-filter="all" onclick="setFilter('all', this)">すべて</button>
-  <button class="filter-tab" data-filter="remaining" onclick="setFilter('remaining', this)">未完了</button>
-  <button class="filter-tab" data-filter="done" onclick="setFilter('done', this)">完了済み</button>
-  <button class="filter-tab" data-filter="cleaning" onclick="setFilter('cleaning', this)">🧹 掃除</button>
-  <button class="filter-tab" data-filter="laundry" onclick="setFilter('laundry', this)">👕 洗濯</button>
-  <button class="filter-tab" data-filter="cooking" onclick="setFilter('cooking', this)">🍳 料理</button>
-  <button class="filter-tab" data-filter="shopping" onclick="setFilter('shopping', this)">🛒 買い物</button>
-  <button class="filter-tab" data-filter="childcare" onclick="setFilter('childcare', this)">👶 育児</button>
-  <button class="filter-tab" data-filter="other" onclick="setFilter('other', this)">📝 その他</button>
 </div>
 
 <div class="task-list" id="task-list"></div>
 
+<div class="complete-banner" id="complete-banner">
+  <div class="big-icon">🎉</div>
+  <div class="msg">全部完了！お疲れさまでした</div>
+  <div class="sub">今日の家事はすべて終わりました</div>
+</div>
+
+<button class="reset-btn" onclick="resetTasks()">🔄 チェックをリセット</button>
+
 <script>
-  const CATEGORIES = {
-    cleaning:  { label: '掃除',   icon: '🧹' },
-    laundry:   { label: '洗濯',   icon: '👕' },
-    cooking:   { label: '料理',   icon: '🍳' },
-    shopping:  { label: '買い物', icon: '🛒' },
-    childcare: { label: '育児',   icon: '👶' },
-    other:     { label: 'その他', icon: '📝' },
-  };
+  const TASKS = [
+    { id: 'dishes',    name: 'お皿洗い',           icon: '🍽️' },
+    { id: 'vacuum',    name: '掃除機掛け',           icon: '🧹' },
+    { id: 'bath',      name: 'お風呂場掃除',         icon: '🛁' },
+    { id: 'hang',      name: '洗濯物干し',           icon: '👕' },
+    { id: 'wash',      name: '洗濯物を回す',         icon: '🌀' },
+    { id: 'fold',      name: '洗濯物を畳む',         icon: '👗' },
+    { id: 'entrance',  name: '玄関のたたきを掃除する', icon: '🚪' },
+    { id: 'toilet',    name: 'トイレ掃除',           icon: '🚽' },
+    { id: 'wipe',      name: '床拭き',               icon: '🧽' },
+  ];
 
-  let tasks = JSON.parse(localStorage.getItem('household-tasks') || '[]');
-  let currentFilter = 'all';
+  const TODAY = todayKey();
 
-  function save() {
-    localStorage.setItem('household-tasks', JSON.stringify(tasks));
+  function todayKey() {
+    const d = new Date();
+    return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
   }
 
-  function addTask() {
-    const input = document.getElementById('task-input');
-    const name = input.value.trim();
-    if (!name) { input.focus(); return; }
-    const category = document.getElementById('category-select').value;
-    tasks.unshift({ id: Date.now(), name, category, done: false });
-    save();
-    render();
-    input.value = '';
-    input.focus();
+  function loadState() {
+    const saved = JSON.parse(localStorage.getItem('checklist-state') || '{}');
+    // 日付が変わっていたらリセット
+    if (saved.date !== TODAY) {
+      return { date: TODAY, done: {} };
+    }
+    return saved;
+  }
+
+  let state = loadState();
+
+  function save() {
+    localStorage.setItem('checklist-state', JSON.stringify(state));
   }
 
   function toggleTask(id) {
-    const t = tasks.find(t => t.id === id);
-    if (t) { t.done = !t.done; save(); render(); }
-  }
-
-  function deleteTask(id) {
-    tasks = tasks.filter(t => t.id !== id);
+    state.done[id] = !state.done[id];
     save();
     render();
   }
 
-  function setFilter(filter, btn) {
-    currentFilter = filter;
-    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+  function resetTasks() {
+    state.done = {};
+    save();
     render();
   }
 
-  function getFiltered() {
-    if (currentFilter === 'all') return tasks;
-    if (currentFilter === 'done') return tasks.filter(t => t.done);
-    if (currentFilter === 'remaining') return tasks.filter(t => !t.done);
-    return tasks.filter(t => t.category === currentFilter);
-  }
-
   function render() {
-    const total = tasks.length;
-    const done = tasks.filter(t => t.done).length;
-    document.getElementById('stat-total').textContent = total;
-    document.getElementById('stat-done').textContent = done;
-    document.getElementById('stat-remaining').textContent = total - done;
+    const doneCount = TASKS.filter(t => state.done[t.id]).length;
+    const total = TASKS.length;
 
-    const filtered = getFiltered();
+    document.getElementById('done-count').textContent = doneCount;
+    document.getElementById('total-count').textContent = total;
+    document.getElementById('bar-fill').style.width = (doneCount / total * 100) + '%';
+
     const list = document.getElementById('task-list');
-
-    if (filtered.length === 0) {
-      list.innerHTML = `
-        <div class="empty">
-          <div class="icon">${currentFilter === 'done' ? '🎉' : '📋'}</div>
-          <div>${currentFilter === 'done' ? '完了したタスクはありません' : 'タスクを追加しましょう！'}</div>
+    list.innerHTML = TASKS.map(t => {
+      const done = !!state.done[t.id];
+      return `
+        <div class="task-item ${done ? 'done' : ''}" onclick="toggleTask('${t.id}')">
+          <div class="check-circle">${done ? '✓' : ''}</div>
+          <span class="task-icon">${t.icon}</span>
+          <span class="task-name">${t.name}</span>
         </div>`;
-      return;
-    }
+    }).join('');
 
-    // カテゴリでグループ化 (all系フィルター時のみ)
-    const groupByCategory = ['all', 'remaining', 'done'].includes(currentFilter);
-
-    if (groupByCategory) {
-      const groups = {};
-      filtered.forEach(t => {
-        if (!groups[t.category]) groups[t.category] = [];
-        groups[t.category].push(t);
-      });
-      list.innerHTML = Object.entries(groups).map(([cat, items]) => `
-        <div class="category-group">
-          <div class="category-label">
-            <span class="dot dot-${cat}"></span>
-            ${CATEGORIES[cat].icon} ${CATEGORIES[cat].label}
-          </div>
-          ${items.map(t => taskHTML(t)).join('')}
-        </div>
-      `).join('');
-    } else {
-      list.innerHTML = filtered.map(t => taskHTML(t)).join('');
-    }
+    const banner = document.getElementById('complete-banner');
+    banner.classList.toggle('show', doneCount === total);
   }
-
-  function taskHTML(t) {
-    return `
-      <div class="task-item ${t.done ? 'done' : ''}" id="task-${t.id}">
-        <button class="check-btn" onclick="toggleTask(${t.id})">
-          ${t.done ? '✓' : ''}
-        </button>
-        <span class="task-name">${escapeHtml(t.name)}</span>
-        <span class="task-category-badge cat-${t.category}">
-          ${CATEGORIES[t.category].icon}
-        </span>
-        <button class="btn-delete" onclick="deleteTask(${t.id})">✕</button>
-      </div>`;
-  }
-
-  function escapeHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // Enter キーで追加
-  document.getElementById('task-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addTask();
-  });
 
   // 日付表示
-  const d = new Date();
-  document.getElementById('date-display').textContent =
-    `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+  (function setDate() {
+    const d = new Date();
+    const week = ['日', '月', '火', '水', '木', '金', '土'];
+    document.getElementById('date-display').textContent =
+      `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${week[d.getDay()]}）`;
+  })();
 
   // ダークモード
   function applyTheme(dark) {
@@ -561,7 +375,6 @@
     applyTheme(next);
   }
 
-  // 初期テーマ: localStorageを優先、次にOSの設定
   (function initTheme() {
     const saved = localStorage.getItem('theme');
     if (saved) {
