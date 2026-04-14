@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube動画リサーチツール</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0f4f8;
+      --surface: #ffffff;
+      --surface2: #f7fafc;
+      --text: #1a202c;
+      --text-muted: #718096;
+      --border: #e2e8f0;
+      --primary: #e53e3e;
+      --primary-dark: #c53030;
+      --primary-light: #fff5f5;
+      --accent: #3182ce;
+      --accent-light: #ebf8ff;
+      --green: #38a169;
+      --green-light: #f0fff4;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+      --radius: 10px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1117;
+        --surface: #1e2130;
+        --surface2: #252a3a;
+        --text: #e2e8f0;
+        --text-muted: #8892a4;
+        --border: #2d3748;
+        --primary-light: #2d1a1a;
+        --accent-light: #1a2740;
+        --green-light: #1a2d22;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* Header */
+    .header {
+      background: var(--primary);
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(229,62,62,0.3);
+    }
+    .header-logo {
+      font-size: 28px;
+    }
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .header-sub {
+      font-size: 12px;
+      opacity: 0.85;
+    }
+
+    /* Main layout */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+
+    /* API Key section */
+    .api-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    .api-section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .api-key-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .api-key-badge.set {
+      background: var(--green-light);
+      color: var(--green);
+      border: 1px solid var(--green);
+    }
+    .api-key-badge.notset {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+    .api-key-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .api-key-input {
+      flex: 1;
+      padding: 9px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      background: var(--surface2);
+      color: var(--text);
+      font-family: monospace;
+    }
+    .api-key-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(49,130,206,0.15);
+    }
+    .api-help {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+    .api-help a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* Search section */
+    .search-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    .search-title {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .search-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+    @media (max-width: 768px) {
+      .search-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .search-grid { grid-template-columns: 1fr; }
+    }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      background: var(--surface2);
+      color: var(--text);
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(229,62,62,0.15);
+    }
+    .search-options {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .search-option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .search-option input[type="checkbox"] {
+      accent-color: var(--primary);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--text-muted); }
+    .btn-accent {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-accent:hover { opacity: 0.9; }
+    .btn-green {
+      background: var(--green);
+      color: white;
+    }
+    .btn-green:hover { opacity: 0.9; }
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 12px;
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .stats-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .stats-count {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .stats-count strong {
+      color: var(--text);
+      font-size: 18px;
+    }
+    .export-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Filter/sort bar */
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .filter-bar input {
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      background: var(--surface2);
+      color: var(--text);
+      width: 220px;
+    }
+    .filter-bar input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .sort-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .sort-select {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    /* Table */
+    .table-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .table-scroll {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead th {
+      background: var(--surface2);
+      padding: 11px 12px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    thead th:hover { color: var(--text); }
+    thead th .sort-icon { margin-left: 4px; opacity: 0.5; }
+    thead th.sorted .sort-icon { opacity: 1; color: var(--primary); }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface2); }
+    tbody td {
+      padding: 10px 12px;
+      vertical-align: top;
+    }
+
+    /* Thumbnail cell */
+    .thumb-cell {
+      width: 100px;
+      min-width: 100px;
+    }
+    .thumb-wrap {
+      position: relative;
+      width: 90px;
+    }
+    .thumb-wrap img {
+      width: 90px;
+      height: 51px;
+      object-fit: cover;
+      border-radius: 5px;
+      display: block;
+    }
+    .thumb-duration {
+      position: absolute;
+      bottom: 3px;
+      right: 3px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      font-size: 10px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+
+    /* Title cell */
+    .title-cell {
+      min-width: 260px;
+      max-width: 360px;
+    }
+    .video-title a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .video-title a:hover { color: var(--primary); text-decoration: underline; }
+    .video-channel {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .video-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    /* Metric cells */
+    .metric-cell {
+      text-align: right;
+      white-space: nowrap;
+      min-width: 80px;
+    }
+    .metric-value {
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .metric-label {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    .metric-bar-wrap {
+      margin-top: 4px;
+      background: var(--border);
+      border-radius: 3px;
+      height: 3px;
+      overflow: hidden;
+    }
+    .metric-bar {
+      height: 3px;
+      border-radius: 3px;
+      background: var(--primary);
+    }
+
+    /* Tags / desc */
+    .tags-cell {
+      min-width: 140px;
+      max-width: 200px;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-size: 10px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      margin: 1px;
+    }
+
+    /* No results */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .empty-sub { font-size: 13px; }
+
+    /* Loading */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .loading-overlay.show { display: flex; }
+    .loading-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 32px 40px;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 14px; color: var(--text-muted); }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      box-shadow: var(--shadow-md);
+      font-size: 13px;
+      max-width: 320px;
+      animation: slideIn 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error { border-left: 3px solid var(--primary); }
+    @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .page-info { font-size: 13px; color: var(--text-muted); }
+
+    /* Checkboxes in table */
+    .check-col { width: 36px; text-align: center; }
+    .row-check { accent-color: var(--primary); width: 14px; height: 14px; cursor: pointer; }
+
+    /* Selected row highlight */
+    tbody tr.selected { background: var(--primary-light); }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-logo">▶️</div>
+  <div>
+    <div class="header-title">YouTube 動画リサーチツール</div>
+    <div class="header-sub">キーワード検索 → 分析 → スプレッドシート出力</div>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-card">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">動画データを取得中...</div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="container">
+
+  <!-- API Key section -->
+  <div class="api-section">
+    <div class="api-section-header">
+      🔑 YouTube Data API キー
+      <span class="api-key-badge notset" id="apiKeyBadge">未設定</span>
+    </div>
+    <div class="api-key-row">
+      <input type="password" class="api-key-input" id="apiKeyInput" placeholder="YouTube Data API v3 キーを入力してください">
+      <button class="btn btn-secondary btn-sm" onclick="saveApiKey()">保存</button>
+      <button class="btn btn-secondary btn-sm" onclick="clearApiKey()">クリア</button>
+      <button class="btn btn-secondary btn-sm" onclick="toggleKeyVisibility()">表示</button>
+    </div>
+    <div class="api-help">
+      APIキーは <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank">Google Cloud Console</a> で取得できます。キーはブラウザのlocalStorageにのみ保存されます。
+    </div>
+  </div>
+
+  <!-- Search section -->
+  <div class="search-section">
+    <div class="search-title">🔍 動画検索</div>
+    <div class="search-grid">
+      <div class="form-group" style="grid-column: 1 / -1;">
+        <label>検索キーワード</label>
+        <input type="text" id="searchQuery" placeholder="例: プログラミング 入門、料理 レシピ、React チュートリアル"
+               onkeydown="if(event.key==='Enter') search()">
+      </div>
+      <div class="form-group">
+        <label>取得件数</label>
+        <select id="maxResults">
+          <option value="10">10件</option>
+          <option value="25" selected>25件</option>
+          <option value="50">50件</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>期間フィルター</label>
+        <select id="publishedAfter">
+          <option value="">すべて</option>
+          <option value="7">過去7日間</option>
+          <option value="30">過去30日間</option>
+          <option value="90">過去3ヶ月</option>
+          <option value="365">過去1年</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>並び順</label>
+        <select id="orderBy">
+          <option value="relevance">関連度順</option>
+          <option value="viewCount">再生数順</option>
+          <option value="rating">評価順</option>
+          <option value="date">新着順</option>
+        </select>
+      </div>
+      <div style="display:flex; align-items:end; padding-bottom:1px;">
+        <button class="btn btn-primary" id="searchBtn" onclick="search()" style="width:100%; justify-content:center;">
+          🔍 検索
+        </button>
+      </div>
+    </div>
+    <div class="search-options">
+      <label class="search-option">
+        <input type="checkbox" id="safeSearch"> セーフサーチ
+      </label>
+      <label class="search-option">
+        <input type="checkbox" id="onlyHD"> HD動画のみ
+      </label>
+      <label class="search-option">
+        <input type="checkbox" id="includeTags"> タグ情報を取得
+      </label>
+      <label class="search-option">
+        <input type="checkbox" id="includeDesc"> 概要欄を取得
+      </label>
+    </div>
+  </div>
+
+  <!-- Results section -->
+  <div id="resultsSection" style="display:none;">
+
+    <!-- Stats + Export bar -->
+    <div class="stats-bar">
+      <div class="stats-info">
+        <div class="stats-count">
+          <strong id="resultCount">0</strong> 件取得
+          <span id="selectedCount" style="display:none;"> / <span id="selCount">0</span> 件選択中</span>
+        </div>
+        <span class="stats-count" id="queryLabel" style="font-size:12px;"></span>
+      </div>
+      <div class="export-buttons">
+        <button class="btn btn-secondary btn-sm" onclick="selectAll()">全選択</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearSelection()">選択解除</button>
+        <button class="btn btn-green btn-sm" onclick="exportCSV()">📊 CSV出力</button>
+        <button class="btn btn-accent btn-sm" onclick="exportExcel()">📗 Excel出力</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportJSON()">{ } JSON出力</button>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <input type="text" id="filterInput" placeholder="🔎 結果を絞り込む（タイトル・チャンネル名）" oninput="filterResults()">
+      <span class="sort-label">並び替え：</span>
+      <select class="sort-select" id="sortSelect" onchange="sortResults()">
+        <option value="">デフォルト</option>
+        <option value="views_desc">再生数（多い順）</option>
+        <option value="views_asc">再生数（少ない順）</option>
+        <option value="likes_desc">いいね数（多い順）</option>
+        <option value="comments_desc">コメント数（多い順）</option>
+        <option value="date_desc">投稿日（新しい順）</option>
+        <option value="date_asc">投稿日（古い順）</option>
+        <option value="duration_desc">再生時間（長い順）</option>
+        <option value="engagement_desc">エンゲージメント率（高い順）</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper">
+      <div class="table-scroll">
+        <table id="resultTable">
+          <thead>
+            <tr>
+              <th class="check-col"><input type="checkbox" id="headerCheck" onchange="toggleAll(this)" style="accent-color:var(--primary)"></th>
+              <th>#</th>
+              <th>サムネイル</th>
+              <th>タイトル・チャンネル</th>
+              <th class="metric-cell">再生数</th>
+              <th class="metric-cell">いいね数</th>
+              <th class="metric-cell">コメント</th>
+              <th class="metric-cell">エンゲ率</th>
+              <th class="metric-cell">再生時間</th>
+              <th class="metric-cell">投稿日</th>
+              <th id="tagsHeader" style="display:none;">タグ</th>
+              <th id="descHeader" style="display:none; min-width:160px;">概要欄</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody"></tbody>
+        </table>
+      </div>
+      <div id="emptyState" class="empty-state" style="display:none;">
+        <div class="empty-icon">📭</div>
+        <div class="empty-title">結果なし</div>
+        <div class="empty-sub">絞り込み条件に合う動画が見つかりませんでした</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Initial empty state -->
+  <div id="initState" class="empty-state" style="margin-top:40px;">
+    <div class="empty-icon">🎬</div>
+    <div class="empty-title">キーワードを入力して検索してください</div>
+    <div class="empty-sub">YouTube Data API を使って動画情報を取得し、スプレッドシートに出力できます</div>
+  </div>
+
+</div>
+
+<script>
+  // ===== STATE =====
+  let allVideos = [];
+  let filteredVideos = [];
+  let maxViewCount = 1;
+
+  // ===== API KEY =====
+  function saveApiKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    if (!key) { showToast('APIキーを入力してください', 'error'); return; }
+    localStorage.setItem('yt_api_key', key);
+    updateApiKeyBadge(true);
+    showToast('APIキーを保存しました', 'success');
+  }
+  function clearApiKey() {
+    localStorage.removeItem('yt_api_key');
+    document.getElementById('apiKeyInput').value = '';
+    updateApiKeyBadge(false);
+    showToast('APIキーをクリアしました', 'success');
+  }
+  function getApiKey() {
+    return localStorage.getItem('yt_api_key') || '';
+  }
+  function updateApiKeyBadge(isSet) {
+    const badge = document.getElementById('apiKeyBadge');
+    if (isSet) {
+      badge.textContent = '設定済み ✓';
+      badge.className = 'api-key-badge set';
+    } else {
+      badge.textContent = '未設定';
+      badge.className = 'api-key-badge notset';
+    }
+  }
+  function toggleKeyVisibility() {
+    const inp = document.getElementById('apiKeyInput');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  // ===== SEARCH =====
+  async function search() {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      showToast('YouTubeのAPIキーを設定してください', 'error');
+      return;
+    }
+    const query = document.getElementById('searchQuery').value.trim();
+    if (!query) {
+      showToast('検索キーワードを入力してください', 'error');
+      return;
+    }
+
+    showLoading('動画を検索中...');
+    document.getElementById('searchBtn').disabled = true;
+
+    try {
+      const maxResults = document.getElementById('maxResults').value;
+      const orderBy = document.getElementById('orderBy').value;
+      const publishedAfterDays = document.getElementById('publishedAfter').value;
+      const safeSearch = document.getElementById('safeSearch').checked ? 'strict' : 'none';
+      const onlyHD = document.getElementById('onlyHD').checked;
+
+      let searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=${maxResults}&order=${orderBy}&safeSearch=${safeSearch}&q=${encodeURIComponent(query)}&key=${apiKey}`;
+      if (publishedAfterDays) {
+        const d = new Date();
+        d.setDate(d.getDate() - parseInt(publishedAfterDays));
+        searchUrl += `&publishedAfter=${d.toISOString()}`;
+      }
+      if (onlyHD) searchUrl += '&videoDefinition=high';
+
+      const searchRes = await fetch(searchUrl);
+      if (!searchRes.ok) {
+        const err = await searchRes.json();
+        throw new Error(err.error?.message || `APIエラー: ${searchRes.status}`);
+      }
+      const searchData = await searchRes.json();
+      const items = searchData.items || [];
+      if (items.length === 0) {
+        showToast('動画が見つかりませんでした', 'error');
+        hideLoading();
+        return;
+      }
+
+      // Get video IDs for detail fetch
+      const videoIds = items.map(i => i.id.videoId).join(',');
+
+      setLoadingText('詳細データ（再生数・いいね数など）を取得中...');
+
+      // Fetch video details
+      const detailParts = ['snippet', 'statistics', 'contentDetails'];
+      const detailUrl = `https://www.googleapis.com/youtube/v3/videos?part=${detailParts.join(',')}&id=${videoIds}&key=${apiKey}`;
+      const detailRes = await fetch(detailUrl);
+      if (!detailRes.ok) {
+        const err = await detailRes.json();
+        throw new Error(err.error?.message || `詳細取得エラー: ${detailRes.status}`);
+      }
+      const detailData = await detailRes.json();
+
+      // Build video objects
+      allVideos = detailData.items.map((v, idx) => {
+        const stats = v.statistics || {};
+        const snippet = v.snippet || {};
+        const details = v.contentDetails || {};
+        const views = parseInt(stats.viewCount || 0);
+        const likes = parseInt(stats.likeCount || 0);
+        const comments = parseInt(stats.commentCount || 0);
+        const engRate = views > 0 ? ((likes + comments) / views * 100).toFixed(2) : '0.00';
+        return {
+          index: idx + 1,
+          videoId: v.id,
+          url: `https://www.youtube.com/watch?v=${v.id}`,
+          title: snippet.title || '',
+          channel: snippet.channelTitle || '',
+          channelId: snippet.channelId || '',
+          publishedAt: snippet.publishedAt || '',
+          publishedStr: formatDate(snippet.publishedAt),
+          views,
+          likes,
+          comments,
+          engRate: parseFloat(engRate),
+          engRateStr: engRate + '%',
+          duration: parseDuration(details.duration || ''),
+          durationStr: formatDuration(details.duration || ''),
+          thumbnail: snippet.thumbnails?.medium?.url || snippet.thumbnails?.default?.url || '',
+          tags: (snippet.tags || []).slice(0, 8),
+          description: (snippet.description || '').slice(0, 200),
+          definition: details.definition || '',
+          caption: details.caption || 'false',
+          language: snippet.defaultLanguage || snippet.defaultAudioLanguage || '',
+        };
+      });
+
+      maxViewCount = Math.max(...allVideos.map(v => v.views), 1);
+      filteredVideos = [...allVideos];
+
+      renderTable();
+      document.getElementById('resultsSection').style.display = 'block';
+      document.getElementById('initState').style.display = 'none';
+      document.getElementById('resultCount').textContent = allVideos.length;
+      document.getElementById('queryLabel').textContent = `「${query}」の検索結果`;
+      showToast(`${allVideos.length}件の動画を取得しました`, 'success');
+
+    } catch (e) {
+      showToast('エラー: ' + e.message, 'error');
+      console.error(e);
+    } finally {
+      hideLoading();
+      document.getElementById('searchBtn').disabled = false;
+    }
+  }
+
+  // ===== RENDER TABLE =====
+  function renderTable() {
+    const body = document.getElementById('resultBody');
+    const showTags = document.getElementById('includeTags').checked;
+    const showDesc = document.getElementById('includeDesc').checked;
+    document.getElementById('tagsHeader').style.display = showTags ? '' : 'none';
+    document.getElementById('descHeader').style.display = showDesc ? '' : 'none';
+
+    if (filteredVideos.length === 0) {
+      body.innerHTML = '';
+      document.getElementById('emptyState').style.display = 'block';
+      document.getElementById('resultCount').textContent = 0;
+      return;
+    }
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('resultCount').textContent = filteredVideos.length;
+
+    body.innerHTML = filteredVideos.map((v, i) => {
+      const barWidth = maxViewCount > 0 ? (v.views / maxViewCount * 100).toFixed(1) : 0;
+      const tagsHtml = showTags ? v.tags.map(t => `<span class="tag">${escHtml(t)}</span>`).join('') : '';
+      const descHtml = showDesc ? `<div style="font-size:11px;color:var(--text-muted);line-height:1.4;">${escHtml(v.description)}${v.description.length >= 200 ? '...' : ''}</div>` : '';
+      return `
+        <tr id="row_${v.videoId}" class="${isSelected(v.videoId) ? 'selected' : ''}">
+          <td class="check-col">
+            <input type="checkbox" class="row-check" data-id="${v.videoId}" onchange="toggleRow(this)" ${isSelected(v.videoId) ? 'checked' : ''}>
+          </td>
+          <td style="color:var(--text-muted);font-size:12px;">${i+1}</td>
+          <td class="thumb-cell">
+            <div class="thumb-wrap">
+              <a href="${v.url}" target="_blank">
+                <img src="${v.thumbnail}" alt="" loading="lazy" onerror="this.style.display='none'">
+              </a>
+              <span class="thumb-duration">${v.durationStr}</span>
+            </div>
+          </td>
+          <td class="title-cell">
+            <div class="video-title"><a href="${v.url}" target="_blank">${escHtml(v.title)}</a></div>
+            <div class="video-channel">📺 ${escHtml(v.channel)}</div>
+            <div class="video-date">🗓 ${v.publishedStr}</div>
+          </td>
+          <td class="metric-cell">
+            <div class="metric-value">${fmtNum(v.views)}</div>
+            <div class="metric-label">再生数</div>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:${barWidth}%"></div></div>
+          </td>
+          <td class="metric-cell">
+            <div class="metric-value" style="color:var(--primary)">${fmtNum(v.likes)}</div>
+            <div class="metric-label">いいね</div>
+          </td>
+          <td class="metric-cell">
+            <div class="metric-value" style="color:var(--accent)">${fmtNum(v.comments)}</div>
+            <div class="metric-label">コメント</div>
+          </td>
+          <td class="metric-cell">
+            <div class="metric-value" style="color:var(--green)">${v.engRateStr}</div>
+            <div class="metric-label">エンゲ率</div>
+          </td>
+          <td class="metric-cell">
+            <div class="metric-value" style="font-size:12px;">${v.durationStr}</div>
+            <div class="metric-label">長さ</div>
+          </td>
+          <td class="metric-cell">
+            <div style="font-size:11px;">${v.publishedStr}</div>
+          </td>
+          ${showTags ? `<td class="tags-cell">${tagsHtml}</td>` : ''}
+          ${showDesc ? `<td>${descHtml}</td>` : ''}
+        </tr>
+      `;
+    }).join('');
+
+    updateSelectionCount();
+  }
+
+  // ===== SELECTION =====
+  const selectedIds = new Set();
+  function isSelected(id) { return selectedIds.has(id); }
+  function toggleRow(cb) {
+    const id = cb.dataset.id;
+    if (cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+    const row = document.getElementById('row_' + id);
+    if (row) row.className = cb.checked ? 'selected' : '';
+    updateSelectionCount();
+  }
+  function toggleAll(cb) {
+    filteredVideos.forEach(v => {
+      if (cb.checked) selectedIds.add(v.videoId); else selectedIds.delete(v.videoId);
+    });
+    renderTable();
+  }
+  function selectAll() {
+    allVideos.forEach(v => selectedIds.add(v.videoId));
+    renderTable();
+  }
+  function clearSelection() {
+    selectedIds.clear();
+    renderTable();
+  }
+  function updateSelectionCount() {
+    const cnt = selectedIds.size;
+    const el = document.getElementById('selectedCount');
+    document.getElementById('selCount').textContent = cnt;
+    el.style.display = cnt > 0 ? '' : 'none';
+  }
+  function getExportVideos() {
+    if (selectedIds.size > 0) return allVideos.filter(v => selectedIds.has(v.videoId));
+    return filteredVideos;
+  }
+
+  // ===== FILTER & SORT =====
+  function filterResults() {
+    const q = document.getElementById('filterInput').value.toLowerCase();
+    filteredVideos = allVideos.filter(v =>
+      v.title.toLowerCase().includes(q) || v.channel.toLowerCase().includes(q)
+    );
+    sortResults(true);
+    renderTable();
+  }
+  function sortResults(skipRender = false) {
+    const s = document.getElementById('sortSelect').value;
+    if (s === 'views_desc') filteredVideos.sort((a,b) => b.views - a.views);
+    else if (s === 'views_asc') filteredVideos.sort((a,b) => a.views - b.views);
+    else if (s === 'likes_desc') filteredVideos.sort((a,b) => b.likes - a.likes);
+    else if (s === 'comments_desc') filteredVideos.sort((a,b) => b.comments - a.comments);
+    else if (s === 'date_desc') filteredVideos.sort((a,b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+    else if (s === 'date_asc') filteredVideos.sort((a,b) => new Date(a.publishedAt) - new Date(b.publishedAt));
+    else if (s === 'duration_desc') filteredVideos.sort((a,b) => b.duration - a.duration);
+    else if (s === 'engagement_desc') filteredVideos.sort((a,b) => b.engRate - a.engRate);
+    if (!skipRender) renderTable();
+  }
+
+  // ===== EXPORT =====
+  function exportCSV() {
+    const videos = getExportVideos();
+    if (videos.length === 0) { showToast('エクスポートする動画がありません', 'error'); return; }
+    const showTags = document.getElementById('includeTags').checked;
+    const showDesc = document.getElementById('includeDesc').checked;
+    const headers = ['#','タイトル','チャンネル','再生数','いいね数','コメント数','エンゲージメント率','再生時間','投稿日','URL'];
+    if (showTags) headers.push('タグ');
+    if (showDesc) headers.push('概要欄');
+    const rows = videos.map((v,i) => {
+      const row = [i+1, v.title, v.channel, v.views, v.likes, v.comments, v.engRateStr, v.durationStr, v.publishedStr, v.url];
+      if (showTags) row.push(v.tags.join(' | '));
+      if (showDesc) row.push(v.description);
+      return row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',');
+    });
+    const csv = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+    downloadFile(csv, `youtube_research_${dateStr()}.csv`, 'text/csv;charset=utf-8;');
+    showToast(`${videos.length}件をCSVで出力しました`, 'success');
+  }
+
+  function exportExcel() {
+    const videos = getExportVideos();
+    if (videos.length === 0) { showToast('エクスポートする動画がありません', 'error'); return; }
+    const showTags = document.getElementById('includeTags').checked;
+    const showDesc = document.getElementById('includeDesc').checked;
+
+    const headers = ['#','タイトル','チャンネル','再生数','いいね数','コメント数','エンゲージメント率(%)','再生時間','投稿日','URL'];
+    if (showTags) headers.push('タグ');
+    if (showDesc) headers.push('概要欄');
+
+    let rows = videos.map((v,i) => {
+      const row = [i+1, v.title, v.channel, v.views, v.likes, v.comments, v.engRate, v.durationStr, v.publishedStr, v.url];
+      if (showTags) row.push(v.tags.join(' | '));
+      if (showDesc) row.push(v.description);
+      return row;
+    });
+
+    // Build XLSX-compatible XML (simple approach)
+    const xml = buildXLSX(headers, rows);
+    downloadFile(xml, `youtube_research_${dateStr()}.xls`, 'application/vnd.ms-excel;charset=utf-8;');
+    showToast(`${videos.length}件をExcel形式で出力しました`, 'success');
+  }
+
+  function exportJSON() {
+    const videos = getExportVideos();
+    if (videos.length === 0) { showToast('エクスポートする動画がありません', 'error'); return; }
+    const data = videos.map(v => ({
+      rank: v.index, title: v.title, channel: v.channel, url: v.url,
+      views: v.views, likes: v.likes, comments: v.comments,
+      engagementRate: v.engRateStr, duration: v.durationStr,
+      publishedAt: v.publishedAt, publishedStr: v.publishedStr,
+      tags: v.tags, description: v.description
+    }));
+    const json = JSON.stringify(data, null, 2);
+    downloadFile(json, `youtube_research_${dateStr()}.json`, 'application/json');
+    showToast(`${videos.length}件をJSONで出力しました`, 'success');
+  }
+
+  function buildXLSX(headers, rows) {
+    const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const headerRow = headers.map(h => `<Cell><Data ss:Type="String">${esc(h)}</Data></Cell>`).join('');
+    const dataRows = rows.map(row =>
+      '<Row>' + row.map(c => {
+        const isNum = typeof c === 'number';
+        return `<Cell><Data ss:Type="${isNum ? 'Number' : 'String'}">${esc(c)}</Data></Cell>`;
+      }).join('') + '</Row>'
+    ).join('');
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  <Worksheet ss:Name="YouTubeリサーチ">
+    <Table>
+      <Row>${headerRow}</Row>
+      ${dataRows}
+    </Table>
+  </Worksheet>
+</Workbook>`;
+  }
+
+  function downloadFile(content, filename, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ===== HELPERS =====
+  function parseDuration(iso) {
+    if (!iso) return 0;
+    const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!m) return 0;
+    return (parseInt(m[1]||0)*3600) + (parseInt(m[2]||0)*60) + parseInt(m[3]||0);
+  }
+  function formatDuration(iso) {
+    const secs = parseDuration(iso);
+    if (!secs) return '--:--';
+    const h = Math.floor(secs/3600), m = Math.floor((secs%3600)/60), s = secs%60;
+    if (h > 0) return `${h}:${pad(m)}:${pad(s)}`;
+    return `${m}:${pad(s)}`;
+  }
+  function pad(n) { return String(n).padStart(2,'0'); }
+  function formatDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+  }
+  function fmtNum(n) {
+    if (n >= 100000000) return (n/100000000).toFixed(1) + '億';
+    if (n >= 10000) return Math.floor(n/10000) + '万' + (n%10000 > 0 ? (n%10000).toLocaleString() : '');
+    return n.toLocaleString();
+  }
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function dateStr() {
+    const d = new Date();
+    return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
+  }
+
+  // ===== UI helpers =====
+  function showLoading(text) {
+    document.getElementById('loadingText').textContent = text;
+    document.getElementById('loadingOverlay').classList.add('show');
+  }
+  function setLoadingText(text) {
+    document.getElementById('loadingText').textContent = text;
+  }
+  function hideLoading() {
+    document.getElementById('loadingOverlay').classList.remove('show');
+  }
+  function showToast(msg, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span>${type === 'success' ? '✓' : '✕'}</span> ${msg}`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+  }
+
+  // ===== INIT =====
+  (function init() {
+    const key = getApiKey();
+    if (key) {
+      document.getElementById('apiKeyInput').value = key;
+      updateApiKeyBadge(true);
+    }
+  })();
+</script>
+</body>
+</html>
