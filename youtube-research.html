@@ -697,6 +697,7 @@
               <th>#</th>
               <th>サムネイル</th>
               <th>タイトル・チャンネル</th>
+              <th class="metric-cell">CH開設日</th>
               <th class="metric-cell">再生数</th>
               <th class="metric-cell">いいね数</th>
               <th class="metric-cell">コメント</th>
@@ -704,7 +705,6 @@
               <th class="metric-cell">再生時間</th>
               <th class="metric-cell">投稿日</th>
               <th class="metric-cell">登録者数</th>
-              <th class="metric-cell">CH開設日</th>
               <th id="tagsHeader" style="display:none;">タグ</th>
               <th id="descHeader" style="display:none; min-width:160px;">概要欄</th>
             </tr>
@@ -945,6 +945,10 @@
             <div class="video-date">🗓 ${v.publishedStr}</div>
           </td>
           <td class="metric-cell">
+            <div style="font-size:11px;">${v.channelCreatedStr}</div>
+            <div class="metric-label">CH開設日</div>
+          </td>
+          <td class="metric-cell">
             <div class="metric-value">${fmtNum(v.views)}</div>
             <div class="metric-label">再生数</div>
             <div class="metric-bar-wrap"><div class="metric-bar" style="width:${barWidth}%"></div></div>
@@ -971,10 +975,6 @@
           <td class="metric-cell">
             <div class="metric-value" style="font-size:12px;">${v.channelSubscribersStr}</div>
             <div class="metric-label">登録者数</div>
-          </td>
-          <td class="metric-cell">
-            <div style="font-size:11px;">${v.channelCreatedStr}</div>
-            <div class="metric-label">CH開設日</div>
           </td>
           ${showTags ? `<td class="tags-cell">${tagsHtml}</td>` : ''}
           ${showDesc ? `<td>${descHtml}</td>` : ''}
@@ -1048,11 +1048,11 @@
     if (videos.length === 0) { showToast('エクスポートする動画がありません', 'error'); return; }
     const showTags = document.getElementById('includeTags').checked;
     const showDesc = document.getElementById('includeDesc').checked;
-    const headers = ['#','タイトル','チャンネル','再生数','いいね数','コメント数','エンゲージメント率','再生時間','投稿日','登録者数','CH開設日','URL'];
+    const headers = ['#','タイトル','チャンネル','CH開設日','再生数','いいね数','コメント数','エンゲージメント率','再生時間','投稿日','登録者数','URL'];
     if (showTags) headers.push('タグ');
     if (showDesc) headers.push('概要欄');
     const rows = videos.map((v,i) => {
-      const row = [i+1, v.title, v.channel, v.views, v.likes, v.comments, v.engRateStr, v.durationStr, v.publishedStr, v.channelSubscribersStr, v.channelCreatedStr, v.url];
+      const row = [i+1, v.title, v.channel, v.channelCreatedStr, v.views, v.likes, v.comments, v.engRateStr, v.durationStr, v.publishedStr, v.channelSubscribersStr, v.url];
       if (showTags) row.push(v.tags.join(' | '));
       if (showDesc) row.push(v.description);
       return row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',');
@@ -1068,12 +1068,12 @@
     const showTags = document.getElementById('includeTags').checked;
     const showDesc = document.getElementById('includeDesc').checked;
 
-    const headers = ['#','タイトル','チャンネル','再生数','いいね数','コメント数','エンゲージメント率(%)','再生時間','投稿日','登録者数','CH開設日','URL'];
+    const headers = ['#','タイトル','チャンネル','CH開設日','再生数','いいね数','コメント数','エンゲージメント率(%)','再生時間','投稿日','登録者数','URL'];
     if (showTags) headers.push('タグ');
     if (showDesc) headers.push('概要欄');
 
     let rows = videos.map((v,i) => {
-      const row = [i+1, v.title, v.channel, v.views, v.likes, v.comments, v.engRate, v.durationStr, v.publishedStr, v.channelSubscribersStr, v.channelCreatedStr, v.url];
+      const row = [i+1, v.title, v.channel, v.channelCreatedStr, v.views, v.likes, v.comments, v.engRate, v.durationStr, v.publishedStr, v.channelSubscribersStr, v.url];
       if (showTags) row.push(v.tags.join(' | '));
       if (showDesc) row.push(v.description);
       return row;
