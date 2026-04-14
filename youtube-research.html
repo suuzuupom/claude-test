@@ -703,6 +703,8 @@
               <th class="metric-cell">エンゲ率</th>
               <th class="metric-cell">再生時間</th>
               <th class="metric-cell">投稿日</th>
+              <th class="metric-cell">登録者数</th>
+              <th class="metric-cell">CH開設日</th>
               <th id="tagsHeader" style="display:none;">タグ</th>
               <th id="descHeader" style="display:none; min-width:160px;">概要欄</th>
             </tr>
@@ -824,6 +826,26 @@
       }
       const detailData = await detailRes.json();
 
+      // Fetch channel details (subscribers + creation date)
+      setLoadingText('チャンネル情報（登録者数・初回登録日）を取得中...');
+      const uniqueChannelIds = [...new Set(detailData.items.map(v => v.snippet?.channelId).filter(Boolean))];
+      const channelMap = {};
+      for (let i = 0; i < uniqueChannelIds.length; i += 50) {
+        const chunk = uniqueChannelIds.slice(i, i + 50).join(',');
+        const chRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${chunk}&key=${apiKey}`);
+        if (chRes.ok) {
+          const chData = await chRes.json();
+          (chData.items || []).forEach(ch => {
+            channelMap[ch.id] = {
+              subscribers: parseInt(ch.statistics?.subscriberCount || 0),
+              subscribersStr: ch.statistics?.hiddenSubscriberCount ? '非公開' : fmtNum(parseInt(ch.statistics?.subscriberCount || 0)),
+              createdAt: ch.snippet?.publishedAt || '',
+              createdStr: formatDate(ch.snippet?.publishedAt),
+            };
+          });
+        }
+      }
+
       // Build video objects
       allVideos = detailData.items.map((v, idx) => {
         const stats = v.statistics || {};
@@ -833,6 +855,7 @@
         const likes = parseInt(stats.likeCount || 0);
         const comments = parseInt(stats.commentCount || 0);
         const engRate = views > 0 ? ((likes + comments) / views * 100).toFixed(2) : '0.00';
+        const chInfo = channelMap[snippet.channelId] || { subscribers: 0, subscribersStr: '-', createdAt: '', createdStr: '-' };
         return {
           index: idx + 1,
           videoId: v.id,
@@ -855,6 +878,10 @@
           definition: details.definition || '',
           caption: details.caption || 'false',
           language: snippet.defaultLanguage || snippet.defaultAudioLanguage || '',
+          channelSubscribers: chInfo.subscribers,
+          channelSubscribersStr: chInfo.subscribersStr,
+          channelCreatedAt: chInfo.createdAt,
+          channelCreatedStr: chInfo.createdStr,
         };
       });
 
@@ -941,6 +968,14 @@
           <td class="metric-cell">
             <div style="font-size:11px;">${v.publishedStr}</div>
           </td>
+          <td class="metric-cell">
+            <div class="metric-value" style="font-size:12px;">${v.channelSubscribersStr}</div>
+            <div class="metric-label">登録者数</div>
+          </td>
+          <td class="metric-cell">
+            <div style="font-size:11px;">${v.channelCreatedStr}</div>
+            <div class="metric-label">CH開設日</div>
+          </td>
           ${showTags ? `<td class="tags-cell">${tagsHtml}</td>` : ''}
           ${showDesc ? `<td>${descHtml}</td>` : ''}
         </tr>
@@ -1013,11 +1048,11 @@
     if (videos.length === 0) { showToast('エクスポートする動画がありません', 'error'); return; }
     const showTags = document.getElementById('includeTags').checked;
     const showDesc = document.getElementById('includeDesc').checked;
-    const headers = ['#','タイトル','チャンネル','再生数','いいね数','コメント数','エンゲージメント率','再生時間','投稿日','URL'];
+    const headers = ['#','タイトル','チャンネル','再生数','いいね数','コメント数','エンゲージメント率','再生時間','投稿日','登録者数','CH開設日','URL'];
     if (showTags) headers.push('タグ');
     if (showDesc) headers.push('概要欄');
     const rows = videos.map((v,i) => {
-      const row = [i+1, v.title, v.channel, v.views, v.likes, v.comments, v.engRateStr, v.durationStr, v.publishedStr, v.url];
+      const row = [i+1, v.title, v.channel, v.views, v.likes, v.comments, v.engRateStr, v.durationStr, v.publishedStr, v.channelSubscribersStr, v.channelCreatedStr, v.url];
       if (showTags) row.push(v.tags.join(' | '));
       if (showDesc) row.push(v.description);
       return row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',');
@@ -1033,12 +1068,12 @@
     const showTags = document.getElementById('includeTags').checked;
     const showDesc = document.getElementById('includeDesc').checked;
 
-    const headers = ['#','タイトル','チャンネル','再生数','いいね数','コメント数','エンゲージメント率(%)','再生時間','投稿日','URL'];
+    const headers = ['#','タイトル','チャンネル','再生数','いいね数','コメント数','エンゲージメント率(%)','再生時間','投稿日','登録者数','CH開設日','URL'];
     if (showTags) headers.push('タグ');
     if (showDesc) headers.push('概要欄');
 
     let rows = videos.map((v,i) => {
-      const row = [i+1, v.title, v.channel, v.views, v.likes, v.comments, v.engRate, v.durationStr, v.publishedStr, v.url];
+      const row = [i+1, v.title, v.channel, v.views, v.likes, v.comments, v.engRate, v.durationStr, v.publishedStr, v.channelSubscribersStr, v.channelCreatedStr, v.url];
       if (showTags) row.push(v.tags.join(' | '));
       if (showDesc) row.push(v.description);
       return row;
@@ -1058,6 +1093,8 @@
       views: v.views, likes: v.likes, comments: v.comments,
       engagementRate: v.engRateStr, duration: v.durationStr,
       publishedAt: v.publishedAt, publishedStr: v.publishedStr,
+      channelSubscribers: v.channelSubscribers, channelSubscribersStr: v.channelSubscribersStr,
+      channelCreatedAt: v.channelCreatedAt, channelCreatedStr: v.channelCreatedStr,
       tags: v.tags, description: v.description
     }));
     const json = JSON.stringify(data, null, 2);
