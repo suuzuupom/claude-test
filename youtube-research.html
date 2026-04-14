@@ -2,10 +2,10 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>YouTube動画リサーチツール</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     :root {
       --bg: #f0f4f8;
@@ -22,10 +22,10 @@
       --green: #38a169;
       --green-light: #f0fff4;
       --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-      --radius: 10px;
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
+      --radius: 12px;
+      --header-h: 52px;
     }
-
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #0f1117;
@@ -38,672 +38,447 @@
         --accent-light: #1a2740;
         --green-light: #1a2d22;
         --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-        --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+        --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
       }
     }
 
+    html { scroll-behavior: smooth; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       font-size: 14px;
+      padding-top: var(--header-h);
     }
 
-    /* Header */
+    /* ====== STICKY HEADER ====== */
     .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-h);
       background: var(--primary);
       color: white;
-      padding: 16px 24px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      box-shadow: 0 2px 8px rgba(229,62,62,0.3);
+      padding: 0 16px;
+      gap: 10px;
+      z-index: 50;
+      box-shadow: 0 2px 8px rgba(229,62,62,0.35);
     }
-    .header-logo {
-      font-size: 28px;
+    .header-logo { font-size: 22px; flex-shrink: 0; }
+    .header-title { font-size: 16px; font-weight: 700; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .header-badge {
+      font-size: 11px; font-weight: 700;
+      padding: 3px 9px; border-radius: 20px;
+      white-space: nowrap; flex-shrink: 0;
     }
-    .header-title {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
-    .header-sub {
-      font-size: 12px;
-      opacity: 0.85;
-    }
+    .header-badge.set { background: rgba(255,255,255,0.25); }
+    .header-badge.notset { background: rgba(0,0,0,0.2); opacity: 0.8; }
 
-    /* Main layout */
+    /* ====== MAIN CONTAINER ====== */
     .container {
       max-width: 1400px;
       margin: 0 auto;
-      padding: 24px 16px;
+      padding: 14px 12px 100px;
+    }
+    @media (min-width: 768px) {
+      .container { padding: 24px 20px 40px; }
     }
 
-    /* API Key section */
-    .api-section {
+    /* ====== SECTION CARD ====== */
+    .section-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 16px 20px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow-sm);
-    }
-    .api-section-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-      font-weight: 600;
-    }
-    .api-key-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-weight: 600;
-    }
-    .api-key-badge.set {
-      background: var(--green-light);
-      color: var(--green);
-      border: 1px solid var(--green);
-    }
-    .api-key-badge.notset {
-      background: var(--primary-light);
-      color: var(--primary);
-      border: 1px solid var(--primary);
-    }
-    .api-key-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .api-key-input {
-      flex: 1;
-      padding: 9px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 13px;
-      background: var(--surface2);
-      color: var(--text);
-      font-family: monospace;
-    }
-    .api-key-input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(49,130,206,0.15);
-    }
-    .api-help {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 8px;
-    }
-    .api-help a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    /* Search section */
-    .search-section {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow-sm);
-    }
-    .search-title {
-      font-weight: 700;
-      font-size: 15px;
       margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .search-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr auto;
-      gap: 12px;
-      align-items: end;
-    }
-    @media (max-width: 768px) {
-      .search-grid { grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 480px) {
-      .search-grid { grid-template-columns: 1fr; }
-    }
-    .form-group label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .form-group input,
-    .form-group select {
-      width: 100%;
-      padding: 9px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 14px;
-      background: var(--surface2);
-      color: var(--text);
-    }
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(229,62,62,0.15);
-    }
-    .search-options {
-      display: flex;
-      gap: 12px;
-      margin-top: 12px;
-      flex-wrap: wrap;
-    }
-    .search-option {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-    .search-option input[type="checkbox"] {
-      accent-color: var(--primary);
-    }
-
-    /* Buttons */
-    .btn {
-      padding: 9px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: all 0.15s;
-      white-space: nowrap;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-    .btn-primary:hover { background: var(--primary-dark); }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-secondary {
-      background: var(--surface2);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:hover { border-color: var(--text-muted); }
-    .btn-accent {
-      background: var(--accent);
-      color: white;
-    }
-    .btn-accent:hover { opacity: 0.9; }
-    .btn-green {
-      background: var(--green);
-      color: white;
-    }
-    .btn-green:hover { opacity: 0.9; }
-    .btn-sm {
-      padding: 6px 14px;
-      font-size: 12px;
-    }
-
-    /* Stats bar */
-    .stats-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .stats-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .stats-count {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-    .stats-count strong {
-      color: var(--text);
-      font-size: 18px;
-    }
-    .export-buttons {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    /* Filter/sort bar */
-    .filter-bar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 14px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .filter-bar input {
-      padding: 7px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 13px;
-      background: var(--surface2);
-      color: var(--text);
-      width: 220px;
-    }
-    .filter-bar input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-    .sort-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      white-space: nowrap;
-    }
-    .sort-select {
-      padding: 7px 10px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 13px;
-      background: var(--surface2);
-      color: var(--text);
-    }
-
-    /* Table */
-    .table-wrapper {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
       box-shadow: var(--shadow-sm);
       overflow: hidden;
     }
-    .table-scroll {
-      overflow-x: auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-    thead th {
-      background: var(--surface2);
-      padding: 11px 12px;
-      text-align: left;
-      font-weight: 700;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-      position: sticky;
-      top: 0;
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 16px;
       cursor: pointer;
       user-select: none;
+      gap: 8px;
+    }
+    .section-header-left { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; }
+    .section-toggle { font-size: 12px; color: var(--text-muted); transition: transform 0.2s; }
+    .section-toggle.open { transform: rotate(180deg); }
+    .section-body { padding: 0 16px 16px; }
+    .section-body.collapsed { display: none; }
+
+    /* ====== API KEY ====== */
+    .api-key-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; padding: 2px 9px; border-radius: 20px; font-weight: 700;
+    }
+    .api-key-badge.set { background: var(--green-light); color: var(--green); border: 1px solid var(--green); }
+    .api-key-badge.notset { background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary); }
+    .api-key-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .api-key-input {
+      flex: 1; min-width: 0;
+      padding: 11px 14px;
+      border: 1px solid var(--border); border-radius: 10px;
+      font-size: 16px; background: var(--surface2); color: var(--text);
+      font-family: monospace;
+    }
+    .api-key-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(49,130,206,0.15); }
+    .api-key-btns { display: flex; gap: 6px; }
+    .api-help { font-size: 12px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
+    .api-help a { color: var(--accent); text-decoration: none; }
+
+    /* ====== SEARCH FORM ====== */
+    .search-main-row {
+      display: flex; gap: 8px; align-items: stretch;
+    }
+    .search-input {
+      flex: 1; min-width: 0;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 16px; background: var(--surface2); color: var(--text);
+      transition: border-color 0.15s;
+    }
+    .search-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(229,62,62,0.12); }
+    .search-input::placeholder { color: var(--text-muted); font-size: 14px; }
+
+    .detail-toggle-btn {
+      background: none; border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 0 14px;
+      font-size: 12px; font-weight: 700; color: var(--text-muted);
+      cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 5px;
+      transition: border-color 0.15s;
+    }
+    .detail-toggle-btn:hover { border-color: var(--text-muted); }
+    .detail-toggle-arrow { transition: transform 0.2s; }
+    .detail-toggle-btn.open .detail-toggle-arrow { transform: rotate(180deg); }
+
+    .detail-options {
+      margin-top: 12px;
+      display: none;
+    }
+    .detail-options.open { display: block; }
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    @media (min-width: 768px) {
+      .options-grid { grid-template-columns: 1fr 1fr 1fr; }
+    }
+    .form-group label {
+      display: block; font-size: 11px; font-weight: 700;
+      color: var(--text-muted); margin-bottom: 5px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .form-group select {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 14px; background: var(--surface2); color: var(--text);
+    }
+    .form-group select:focus { outline: none; border-color: var(--primary); }
+    .options-checks {
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .option-check {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 13px; color: var(--text-muted);
+      cursor: pointer;
+    }
+    .option-check input { accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; }
+
+    /* ====== BUTTONS ====== */
+    .btn {
+      min-height: 44px; padding: 10px 18px;
+      border-radius: 10px; font-size: 14px; font-weight: 700;
+      cursor: pointer; border: none; transition: all 0.15s;
+      white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--text-muted); }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-accent:hover { opacity: 0.9; }
+    .btn-green { background: var(--green); color: white; }
+    .btn-green:hover { opacity: 0.9; }
+    .btn-sm { min-height: 36px; padding: 6px 14px; font-size: 13px; }
+    .btn-icon { min-height: 44px; width: 44px; padding: 0; border-radius: 10px; }
+    .btn-full { width: 100%; }
+    .search-btn-wrap { margin-top: 12px; }
+
+    /* ====== RESULTS HEADER ====== */
+    .results-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .results-count { font-size: 13px; color: var(--text-muted); flex: 1; }
+    .results-count strong { color: var(--text); font-size: 18px; }
+    .results-query { font-size: 12px; color: var(--text-muted); }
+    .results-sel-bar {
+      display: none;
+      align-items: center; gap: 8px;
+      background: var(--primary-light);
+      border: 1px solid var(--primary);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 13px; color: var(--primary); font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .results-sel-bar.visible { display: flex; }
+
+    /* Desktop export buttons */
+    .desktop-export {
+      display: none;
+    }
+    @media (min-width: 768px) {
+      .desktop-export { display: flex; gap: 8px; flex-wrap: wrap; }
+    }
+
+    /* ====== FILTER BAR ====== */
+    .filter-row {
+      display: flex; gap: 8px; margin-bottom: 12px; align-items: stretch;
+    }
+    .filter-input {
+      flex: 1; min-width: 0;
+      padding: 9px 12px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 16px; background: var(--surface2); color: var(--text);
+    }
+    .filter-input:focus { outline: none; border-color: var(--accent); }
+    .sort-select {
+      padding: 9px 10px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 13px; background: var(--surface2); color: var(--text);
+      flex-shrink: 0; max-width: 130px;
+    }
+    @media (min-width: 768px) {
+      .sort-select { max-width: 200px; }
+    }
+
+    /* ====== TABLE (desktop) ====== */
+    .table-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow-sm); overflow: hidden;
+    }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th {
+      background: var(--surface2); padding: 11px 12px;
+      text-align: left; font-weight: 700; font-size: 11px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--text-muted); border-bottom: 1px solid var(--border);
+      white-space: nowrap; position: sticky; top: 0; cursor: pointer; user-select: none;
     }
     thead th:hover { color: var(--text); }
     thead th .sort-icon { margin-left: 4px; opacity: 0.5; }
     thead th.sorted .sort-icon { opacity: 1; color: var(--primary); }
-    tbody tr {
-      border-bottom: 1px solid var(--border);
-      transition: background 0.1s;
-    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: var(--surface2); }
-    tbody td {
-      padding: 10px 12px;
-      vertical-align: top;
-    }
-
-    /* Thumbnail cell */
-    .thumb-cell {
-      width: 100px;
-      min-width: 100px;
-    }
-    .thumb-wrap {
-      position: relative;
-      width: 90px;
-    }
-    .thumb-wrap img {
-      width: 90px;
-      height: 51px;
-      object-fit: cover;
-      border-radius: 5px;
-      display: block;
-    }
-    .thumb-duration {
-      position: absolute;
-      bottom: 3px;
-      right: 3px;
-      background: rgba(0,0,0,0.8);
-      color: white;
-      font-size: 10px;
-      padding: 1px 4px;
-      border-radius: 3px;
-      font-weight: 600;
-    }
-
-    /* Title cell */
-    .title-cell {
-      min-width: 260px;
-      max-width: 360px;
-    }
-    .video-title a {
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 600;
-      line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .video-title a:hover { color: var(--primary); text-decoration: underline; }
-    .video-channel {
-      margin-top: 4px;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-    .video-date {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 3px;
-    }
-
-    /* Metric cells */
-    .metric-cell {
-      text-align: right;
-      white-space: nowrap;
-      min-width: 80px;
-    }
-    .metric-value {
-      font-weight: 700;
-      font-size: 14px;
-    }
-    .metric-label {
-      font-size: 10px;
-      color: var(--text-muted);
-    }
-    .metric-bar-wrap {
-      margin-top: 4px;
-      background: var(--border);
-      border-radius: 3px;
-      height: 3px;
-      overflow: hidden;
-    }
-    .metric-bar {
-      height: 3px;
-      border-radius: 3px;
-      background: var(--primary);
-    }
-
-    /* Tags / desc */
-    .tags-cell {
-      min-width: 140px;
-      max-width: 200px;
-    }
-    .tag {
-      display: inline-block;
-      padding: 2px 7px;
-      border-radius: 20px;
-      font-size: 10px;
-      background: var(--primary-light);
-      color: var(--primary);
-      border: 1px solid var(--primary);
-      margin: 1px;
-    }
-
-    /* No results */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text-muted);
-    }
-    .empty-icon { font-size: 48px; margin-bottom: 12px; }
-    .empty-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-    .empty-sub { font-size: 13px; }
-
-    /* Loading */
-    .loading-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-    }
-    .loading-overlay.show { display: flex; }
-    .loading-card {
-      background: var(--surface);
-      border-radius: var(--radius);
-      padding: 32px 40px;
-      text-align: center;
-      box-shadow: var(--shadow-md);
-    }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid var(--border);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-text { font-size: 14px; color: var(--text-muted); }
-
-    /* Toast */
-    .toast-container {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 200;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .toast {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 16px;
-      box-shadow: var(--shadow-md);
-      font-size: 13px;
-      max-width: 320px;
-      animation: slideIn 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .toast.success { border-left: 3px solid var(--green); }
-    .toast.error { border-left: 3px solid var(--primary); }
-    @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-    /* Pagination */
-    .pagination {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 16px;
-      border-top: 1px solid var(--border);
-    }
-    .page-info { font-size: 13px; color: var(--text-muted); }
-
-    /* Checkboxes in table */
+    tbody tr.selected { background: var(--primary-light); }
+    tbody td { padding: 10px 12px; vertical-align: top; }
     .check-col { width: 36px; text-align: center; }
     .row-check { accent-color: var(--primary); width: 14px; height: 14px; cursor: pointer; }
-
-    /* Selected row highlight */
-    tbody tr.selected { background: var(--primary-light); }
-
-    /* ===== MOBILE CARD VIEW ===== */
-    .card-list { display: none; }
-
-    @media (max-width: 767px) {
-      /* Hide table, show cards */
-      .table-scroll { display: none; }
-      .card-list { display: block; }
-
-      /* Prevent iOS input zoom */
-      .form-group input,
-      .form-group select,
-      .api-key-input,
-      .filter-bar input,
-      .sort-select { font-size: 16px !important; }
-
-      /* Container padding */
-      .container { padding: 12px 12px; }
-
-      /* Header compact */
-      .header { padding: 12px 16px; }
-      .header-title { font-size: 17px; }
-
-      /* Search grid: single column */
-      .search-grid { grid-template-columns: 1fr !important; gap: 10px; }
-
-      /* All buttons: min height 44px */
-      .btn { min-height: 44px; padding: 10px 16px; font-size: 15px; }
-      .btn-sm { min-height: 44px; padding: 10px 14px; font-size: 14px; }
-
-      /* Stats bar: stacked */
-      .stats-bar { flex-direction: column; align-items: stretch; gap: 10px; }
-      .export-buttons {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-      .export-buttons .btn { justify-content: center; }
-
-      /* Filter bar: full width */
-      .filter-bar { flex-direction: column; align-items: stretch; gap: 8px; }
-      .filter-bar input { width: 100% !important; }
-      .sort-select { width: 100%; }
-      .sort-label { display: none; }
-
-      /* API key row: stacked */
-      .api-key-row { flex-wrap: wrap; }
-      .api-key-input { min-width: 0; width: 100%; }
+    .thumb-cell { width: 100px; min-width: 100px; }
+    .thumb-wrap { position: relative; width: 90px; }
+    .thumb-wrap img { width: 90px; height: 51px; object-fit: cover; border-radius: 5px; display: block; }
+    .thumb-duration {
+      position: absolute; bottom: 3px; right: 3px;
+      background: rgba(0,0,0,0.8); color: white;
+      font-size: 10px; padding: 1px 4px; border-radius: 3px; font-weight: 600;
+    }
+    .title-cell { min-width: 240px; max-width: 340px; }
+    .video-title a {
+      color: var(--text); text-decoration: none; font-weight: 600; line-height: 1.4;
+      display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .video-title a:hover { color: var(--primary); text-decoration: underline; }
+    .video-channel { margin-top: 4px; font-size: 11px; color: var(--text-muted); }
+    .video-date { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+    .metric-cell { text-align: right; white-space: nowrap; min-width: 76px; }
+    .metric-value { font-weight: 700; font-size: 14px; }
+    .metric-label { font-size: 10px; color: var(--text-muted); }
+    .metric-bar-wrap { margin-top: 4px; background: var(--border); border-radius: 3px; height: 3px; overflow: hidden; }
+    .metric-bar { height: 3px; border-radius: 3px; background: var(--primary); }
+    .tags-cell { min-width: 140px; max-width: 200px; }
+    .tag {
+      display: inline-block; padding: 2px 7px; border-radius: 20px; font-size: 10px;
+      background: var(--primary-light); color: var(--primary);
+      border: 1px solid var(--primary); margin: 1px;
     }
 
-    /* Card styles */
+    /* ====== MOBILE CARDS ====== */
+    .card-list { display: none; }
+
     .video-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       overflow: hidden;
       box-shadow: var(--shadow-sm);
-      transition: box-shadow 0.15s;
     }
-    .video-card.selected { border-color: var(--primary); background: var(--primary-light); }
-    .video-card-top {
-      display: flex;
-      gap: 10px;
-      padding: 12px 12px 8px;
-      align-items: flex-start;
-    }
-    .card-thumb {
-      flex-shrink: 0;
+    .video-card.selected { border-color: var(--primary); }
+
+    /* Card top: thumbnail full-width */
+    .card-thumb-wrap {
       position: relative;
-      width: 120px;
+      width: 100%;
+      padding-top: 56.25%; /* 16:9 */
+      background: #000;
     }
-    .card-thumb img {
-      width: 120px;
-      height: 68px;
-      object-fit: cover;
-      border-radius: 6px;
-      display: block;
-    }
-    .card-thumb-dur {
+    .card-thumb-wrap img {
       position: absolute;
-      bottom: 3px; right: 3px;
-      background: rgba(0,0,0,0.8);
-      color: white;
-      font-size: 10px;
-      padding: 1px 5px;
-      border-radius: 3px;
-      font-weight: 600;
+      inset: 0; width: 100%; height: 100%;
+      object-fit: cover;
     }
-    .card-info { flex: 1; min-width: 0; }
-    .card-title a {
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 14px;
-      line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+    .card-dur-badge {
+      position: absolute; bottom: 8px; right: 8px;
+      background: rgba(0,0,0,0.85); color: white;
+      font-size: 11px; font-weight: 700;
+      padding: 2px 7px; border-radius: 4px;
     }
-    .card-title a:hover { color: var(--primary); }
-    .card-channel { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-    .card-date { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-    .card-metrics {
+    .card-rank-badge {
+      position: absolute; top: 8px; left: 8px;
+      background: rgba(0,0,0,0.7); color: white;
+      font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: 4px;
+    }
+    .card-check-badge {
+      position: absolute; top: 8px; right: 8px;
+    }
+    .card-check-badge input {
+      width: 20px; height: 20px;
+      accent-color: var(--primary); cursor: pointer;
+    }
+
+    /* Card body */
+    .card-body { padding: 10px 12px 0; }
+    .card-title {
+      font-size: 14px; font-weight: 700; line-height: 1.45;
+      display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+      margin-bottom: 5px;
+    }
+    .card-title a { color: var(--text); text-decoration: none; }
+    .card-title a:active { color: var(--primary); }
+    .card-meta {
+      font-size: 12px; color: var(--text-muted);
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+
+    /* Card metrics grid */
+    .card-stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 1px;
       background: var(--border);
+      margin-top: 10px;
       border-top: 1px solid var(--border);
     }
-    .card-metric {
+    .card-stat {
       background: var(--surface);
-      padding: 8px 6px;
+      padding: 9px 4px;
       text-align: center;
     }
-    .card-metric-val {
-      font-weight: 700;
-      font-size: 13px;
-      line-height: 1.2;
+    .video-card.selected .card-stat { background: var(--primary-light); }
+    .card-stat-val { font-weight: 700; font-size: 13px; }
+    .card-stat-lbl { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+    /* Card channel row */
+    .card-ch-row {
+      padding: 7px 12px 10px;
+      font-size: 11px; color: var(--text-muted);
+      display: flex; gap: 14px; flex-wrap: wrap;
+      border-top: 1px solid var(--border);
     }
-    .card-metric-lbl {
-      font-size: 10px;
-      color: var(--text-muted);
-      margin-top: 1px;
+
+    /* ====== EMPTY STATES ====== */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .empty-sub { font-size: 13px; }
+
+    /* ====== LOADING ====== */
+    .loading-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 200;
+      align-items: center; justify-content: center;
     }
-    .card-extra {
-      display: flex;
-      gap: 12px;
-      padding: 6px 12px 10px;
-      font-size: 11px;
-      color: var(--text-muted);
-      flex-wrap: wrap;
+    .loading-overlay.show { display: flex; }
+    .loading-card {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 30px 40px; text-align: center; box-shadow: var(--shadow-md);
+      margin: 16px;
     }
-    .card-check-row {
-      padding: 4px 12px 0;
-      display: flex;
-      align-items: center;
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid var(--border); border-top-color: var(--primary);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+      margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 14px; color: var(--text-muted); }
+
+    /* ====== TOAST ====== */
+    .toast-container {
+      position: fixed; bottom: 80px; right: 16px; z-index: 300;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    @media (min-width: 768px) { .toast-container { bottom: 24px; right: 20px; } }
+    .toast {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 16px;
+      box-shadow: var(--shadow-md); font-size: 13px; max-width: 300px;
+      animation: slideIn 0.2s ease; display: flex; align-items: center; gap: 8px;
+    }
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error { border-left: 3px solid var(--primary); }
+    @keyframes slideIn { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* ====== FIXED BOTTOM BAR (mobile) ====== */
+    .bottom-bar {
+      display: none;
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 10px 12px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.12);
+      z-index: 40;
       gap: 8px;
     }
-    .card-rank {
-      font-size: 11px;
-      color: var(--text-muted);
-      font-weight: 600;
+    .bottom-bar.visible { display: flex; }
+    .bottom-bar .btn { flex: 1; font-size: 13px; }
+
+    @media (min-width: 768px) {
+      /* Desktop: show table, hide cards & bottom bar */
+      .table-scroll { display: block !important; }
+      .card-list { display: none !important; }
+      .bottom-bar { display: none !important; }
+    }
+
+    @media (max-width: 767px) {
+      /* Mobile: hide table, show cards */
+      .table-scroll { display: none !important; }
+      .card-list { display: block; }
     }
   </style>
 </head>
 <body>
 
-<!-- Header -->
+<!-- Fixed Header -->
 <div class="header">
   <div class="header-logo">▶️</div>
-  <div>
-    <div class="header-title">YouTube 動画リサーチツール</div>
-    <div class="header-sub">キーワード検索 → 分析 → スプレッドシート出力</div>
-  </div>
+  <div class="header-title">YouTube リサーチ</div>
+  <span class="header-badge notset" id="headerBadge">未設定</span>
 </div>
 
 <!-- Loading overlay -->
@@ -714,125 +489,141 @@
   </div>
 </div>
 
-<!-- Toast container -->
+<!-- Toast -->
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- Fixed Bottom Export Bar (mobile) -->
+<div class="bottom-bar" id="bottomBar">
+  <button class="btn btn-green" onclick="exportCSV()">📊 CSV</button>
+  <button class="btn btn-accent" onclick="exportExcel()">📗 Excel</button>
+  <button class="btn btn-secondary" onclick="exportJSON()">{ } JSON</button>
+</div>
 
 <div class="container">
 
-  <!-- API Key section -->
-  <div class="api-section">
-    <div class="api-section-header">
-      🔑 YouTube Data API キー
-      <span class="api-key-badge notset" id="apiKeyBadge">未設定</span>
+  <!-- API Key Section -->
+  <div class="section-card">
+    <div class="section-header" onclick="toggleSection('apiBody', 'apiArrow')">
+      <div class="section-header-left">
+        🔑 API キー
+        <span class="api-key-badge notset" id="apiKeyBadge">未設定</span>
+      </div>
+      <span class="section-toggle" id="apiArrow">▼</span>
     </div>
-    <div class="api-key-row">
-      <input type="password" class="api-key-input" id="apiKeyInput" placeholder="YouTube Data API v3 キーを入力してください">
-      <button class="btn btn-secondary btn-sm" onclick="saveApiKey()">保存</button>
-      <button class="btn btn-secondary btn-sm" onclick="clearApiKey()">クリア</button>
-      <button class="btn btn-secondary btn-sm" onclick="toggleKeyVisibility()">表示</button>
-    </div>
-    <div class="api-help">
-      APIキーは <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank">Google Cloud Console</a> で取得できます。キーはブラウザのlocalStorageにのみ保存されます。
+    <div class="section-body" id="apiBody">
+      <div class="api-key-row">
+        <input type="password" class="api-key-input" id="apiKeyInput" placeholder="YouTube Data API v3 キーを入力">
+        <div class="api-key-btns">
+          <button class="btn btn-secondary btn-sm" onclick="saveApiKey()">保存</button>
+          <button class="btn btn-secondary btn-sm" onclick="toggleKeyVisibility()">表示</button>
+          <button class="btn btn-secondary btn-sm" onclick="clearApiKey()">クリア</button>
+        </div>
+      </div>
+      <div class="api-help">
+        APIキーは <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank">Google Cloud Console</a> で取得。キーはブラウザのlocalStorageにのみ保存されます。
+      </div>
     </div>
   </div>
 
-  <!-- Search section -->
-  <div class="search-section">
-    <div class="search-title">🔍 動画検索</div>
-    <div class="search-grid">
-      <div class="form-group" style="grid-column: 1 / -1;">
-        <label>検索キーワード</label>
-        <input type="text" id="searchQuery" placeholder="例: プログラミング 入門、料理 レシピ、React チュートリアル"
+  <!-- Search Section -->
+  <div class="section-card">
+    <div class="section-header" style="cursor:default;">
+      <div class="section-header-left">🔍 動画検索</div>
+    </div>
+    <div class="section-body" style="padding-top:0;">
+      <div class="search-main-row">
+        <input type="text" class="search-input" id="searchQuery"
+               placeholder="キーワードを入力…"
                onkeydown="if(event.key==='Enter') search()">
-      </div>
-      <div class="form-group">
-        <label>取得件数</label>
-        <select id="maxResults">
-          <option value="10">10件</option>
-          <option value="25" selected>25件</option>
-          <option value="50">50件</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>期間フィルター</label>
-        <select id="publishedAfter">
-          <option value="">すべて</option>
-          <option value="7">過去7日間</option>
-          <option value="30">過去30日間</option>
-          <option value="90">過去3ヶ月</option>
-          <option value="365">過去1年</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>並び順</label>
-        <select id="orderBy">
-          <option value="relevance">関連度順</option>
-          <option value="viewCount">再生数順</option>
-          <option value="rating">評価順</option>
-          <option value="date">新着順</option>
-        </select>
-      </div>
-      <div style="display:flex; align-items:end; padding-bottom:1px;">
-        <button class="btn btn-primary" id="searchBtn" onclick="search()" style="width:100%; justify-content:center;">
-          🔍 検索
+        <button class="detail-toggle-btn" id="detailToggleBtn" onclick="toggleDetail()">
+          詳細 <span class="detail-toggle-arrow">▼</span>
         </button>
       </div>
-    </div>
-    <div class="search-options">
-      <label class="search-option">
-        <input type="checkbox" id="safeSearch"> セーフサーチ
-      </label>
-      <label class="search-option">
-        <input type="checkbox" id="onlyHD"> HD動画のみ
-      </label>
-      <label class="search-option">
-        <input type="checkbox" id="includeTags"> タグ情報を取得
-      </label>
-      <label class="search-option">
-        <input type="checkbox" id="includeDesc"> 概要欄を取得
-      </label>
+      <div class="detail-options" id="detailOptions">
+        <div class="options-grid" style="margin-top:12px;">
+          <div class="form-group">
+            <label>取得件数</label>
+            <select id="maxResults">
+              <option value="10">10件</option>
+              <option value="25" selected>25件</option>
+              <option value="50">50件</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>期間</label>
+            <select id="publishedAfter">
+              <option value="">すべて</option>
+              <option value="7">過去7日間</option>
+              <option value="30">過去30日間</option>
+              <option value="90">過去3ヶ月</option>
+              <option value="365">過去1年</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>並び順</label>
+            <select id="orderBy">
+              <option value="relevance">関連度順</option>
+              <option value="viewCount">再生数順</option>
+              <option value="rating">評価順</option>
+              <option value="date">新着順</option>
+            </select>
+          </div>
+        </div>
+        <div class="options-checks">
+          <label class="option-check"><input type="checkbox" id="safeSearch"> セーフサーチ</label>
+          <label class="option-check"><input type="checkbox" id="onlyHD"> HD動画のみ</label>
+          <label class="option-check"><input type="checkbox" id="includeTags"> タグ情報</label>
+          <label class="option-check"><input type="checkbox" id="includeDesc"> 概要欄</label>
+        </div>
+      </div>
+      <div class="search-btn-wrap">
+        <button class="btn btn-primary btn-full" id="searchBtn" onclick="search()">🔍 検索する</button>
+      </div>
     </div>
   </div>
 
-  <!-- Results section -->
+  <!-- Results -->
   <div id="resultsSection" style="display:none;">
 
-    <!-- Stats + Export bar -->
-    <div class="stats-bar">
-      <div class="stats-info">
-        <div class="stats-count">
-          <strong id="resultCount">0</strong> 件取得
-          <span id="selectedCount" style="display:none;"> / <span id="selCount">0</span> 件選択中</span>
-        </div>
-        <span class="stats-count" id="queryLabel" style="font-size:12px;"></span>
+    <div class="results-header">
+      <div class="results-count">
+        <strong id="resultCount">0</strong> 件
+        <span id="queryLabel" style="font-size:12px; color:var(--text-muted);"></span>
       </div>
-      <div class="export-buttons">
+      <!-- Desktop export buttons -->
+      <div class="desktop-export">
         <button class="btn btn-secondary btn-sm" onclick="selectAll()">全選択</button>
         <button class="btn btn-secondary btn-sm" onclick="clearSelection()">選択解除</button>
-        <button class="btn btn-green btn-sm" onclick="exportCSV()">📊 CSV出力</button>
-        <button class="btn btn-accent btn-sm" onclick="exportExcel()">📗 Excel出力</button>
-        <button class="btn btn-secondary btn-sm" onclick="exportJSON()">{ } JSON出力</button>
+        <button class="btn btn-green btn-sm" onclick="exportCSV()">📊 CSV</button>
+        <button class="btn btn-accent btn-sm" onclick="exportExcel()">📗 Excel</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportJSON()">{ } JSON</button>
       </div>
     </div>
 
-    <!-- Filter bar -->
-    <div class="filter-bar">
-      <input type="text" id="filterInput" placeholder="🔎 結果を絞り込む（タイトル・チャンネル名）" oninput="filterResults()">
-      <span class="sort-label">並び替え：</span>
+    <!-- Selection status -->
+    <div class="results-sel-bar" id="selectedCount">
+      <span id="selCount">0</span> 件選択中
+      <button class="btn btn-secondary btn-sm" onclick="clearSelection()" style="margin-left:auto;">解除</button>
+    </div>
+
+    <!-- Filter + Sort -->
+    <div class="filter-row">
+      <input type="text" class="filter-input" id="filterInput"
+             placeholder="🔎 タイトル・チャンネルで絞込" oninput="filterResults()">
       <select class="sort-select" id="sortSelect" onchange="sortResults()">
-        <option value="">デフォルト</option>
-        <option value="views_desc">再生数（多い順）</option>
-        <option value="views_asc">再生数（少ない順）</option>
-        <option value="likes_desc">いいね数（多い順）</option>
-        <option value="comments_desc">コメント数（多い順）</option>
-        <option value="date_desc">投稿日（新しい順）</option>
-        <option value="date_asc">投稿日（古い順）</option>
-        <option value="duration_desc">再生時間（長い順）</option>
-        <option value="engagement_desc">エンゲージメント率（高い順）</option>
+        <option value="">並び替え</option>
+        <option value="views_desc">再生数↓</option>
+        <option value="views_asc">再生数↑</option>
+        <option value="likes_desc">いいね↓</option>
+        <option value="comments_desc">コメント↓</option>
+        <option value="date_desc">新しい順</option>
+        <option value="date_asc">古い順</option>
+        <option value="duration_desc">長い順</option>
+        <option value="engagement_desc">エンゲ↓</option>
       </select>
     </div>
 
-    <!-- Table -->
+    <!-- Table (desktop) + Cards (mobile) -->
     <div class="table-wrapper">
       <div class="table-scroll">
         <table id="resultTable">
@@ -857,21 +648,23 @@
           <tbody id="resultBody"></tbody>
         </table>
       </div>
+
       <div id="emptyState" class="empty-state" style="display:none;">
         <div class="empty-icon">📭</div>
         <div class="empty-title">結果なし</div>
         <div class="empty-sub">絞り込み条件に合う動画が見つかりませんでした</div>
       </div>
-      <!-- Mobile card list -->
-      <div class="card-list" id="cardBody"></div>
+
+      <!-- Mobile cards -->
+      <div class="card-list" id="cardBody" style="padding:8px;"></div>
     </div>
   </div>
 
-  <!-- Initial empty state -->
-  <div id="initState" class="empty-state" style="margin-top:40px;">
+  <!-- Init state -->
+  <div id="initState" class="empty-state" style="margin-top:20px;">
     <div class="empty-icon">🎬</div>
-    <div class="empty-title">キーワードを入力して検索してください</div>
-    <div class="empty-sub">YouTube Data API を使って動画情報を取得し、スプレッドシートに出力できます</div>
+    <div class="empty-title">キーワードを入力して検索</div>
+    <div class="empty-sub">YouTube Data API で動画を分析・CSV出力できます</div>
   </div>
 
 </div>
@@ -882,6 +675,20 @@
   let filteredVideos = [];
   let maxViewCount = 1;
 
+  // ===== SECTION TOGGLE =====
+  function toggleSection(bodyId, arrowId) {
+    const body = document.getElementById(bodyId);
+    const arrow = document.getElementById(arrowId);
+    const collapsed = body.classList.toggle('collapsed');
+    if (arrow) arrow.classList.toggle('open', !collapsed);
+  }
+  function toggleDetail() {
+    const opts = document.getElementById('detailOptions');
+    const btn = document.getElementById('detailToggleBtn');
+    opts.classList.toggle('open');
+    btn.classList.toggle('open');
+  }
+
   // ===== API KEY =====
   function saveApiKey() {
     const key = document.getElementById('apiKeyInput').value.trim();
@@ -889,6 +696,9 @@
     localStorage.setItem('yt_api_key', key);
     updateApiKeyBadge(true);
     showToast('APIキーを保存しました', 'success');
+    // Auto-collapse API section after saving
+    const body = document.getElementById('apiBody');
+    if (!body.classList.contains('collapsed')) toggleSection('apiBody', 'apiArrow');
   }
   function clearApiKey() {
     localStorage.removeItem('yt_api_key');
@@ -901,12 +711,17 @@
   }
   function updateApiKeyBadge(isSet) {
     const badge = document.getElementById('apiKeyBadge');
+    const hBadge = document.getElementById('headerBadge');
     if (isSet) {
       badge.textContent = '設定済み ✓';
       badge.className = 'api-key-badge set';
+      hBadge.textContent = '🔑 設定済み';
+      hBadge.className = 'header-badge set';
     } else {
       badge.textContent = '未設定';
       badge.className = 'api-key-badge notset';
+      hBadge.textContent = '🔑 未設定';
+      hBadge.className = 'header-badge notset';
     }
   }
   function toggleKeyVisibility() {
@@ -958,12 +773,9 @@
         return;
       }
 
-      // Get video IDs for detail fetch
       const videoIds = items.map(i => i.id.videoId).join(',');
-
       setLoadingText('詳細データ（再生数・いいね数など）を取得中...');
 
-      // Fetch video details
       const detailParts = ['snippet', 'statistics', 'contentDetails'];
       const detailUrl = `https://www.googleapis.com/youtube/v3/videos?part=${detailParts.join(',')}&id=${videoIds}&key=${apiKey}`;
       const detailRes = await fetch(detailUrl);
@@ -973,7 +785,6 @@
       }
       const detailData = await detailRes.json();
 
-      // Fetch channel details (subscribers + creation date)
       setLoadingText('チャンネル情報（登録者数・初回登録日）を取得中...');
       const uniqueChannelIds = [...new Set(detailData.items.map(v => v.snippet?.channelId).filter(Boolean))];
       const channelMap = {};
@@ -993,7 +804,6 @@
         }
       }
 
-      // Build video objects
       allVideos = detailData.items.map((v, idx) => {
         const stats = v.statistics || {};
         const snippet = v.snippet || {};
@@ -1012,9 +822,7 @@
           channelId: snippet.channelId || '',
           publishedAt: snippet.publishedAt || '',
           publishedStr: formatDate(snippet.publishedAt),
-          views,
-          likes,
-          comments,
+          views, likes, comments,
           engRate: parseFloat(engRate),
           engRateStr: engRate + '%',
           duration: parseDuration(details.duration || ''),
@@ -1039,7 +847,8 @@
       document.getElementById('resultsSection').style.display = 'block';
       document.getElementById('initState').style.display = 'none';
       document.getElementById('resultCount').textContent = allVideos.length;
-      document.getElementById('queryLabel').textContent = `「${query}」の検索結果`;
+      document.getElementById('queryLabel').textContent = `「${query}」`;
+      updateBottomBar();
       showToast(`${allVideos.length}件の動画を取得しました`, 'success');
 
     } catch (e) {
@@ -1063,6 +872,7 @@
       body.innerHTML = '';
       document.getElementById('emptyState').style.display = 'block';
       document.getElementById('resultCount').textContent = 0;
+      renderCards();
       return;
     }
     document.getElementById('emptyState').style.display = 'none';
@@ -1074,15 +884,11 @@
       const descHtml = showDesc ? `<div style="font-size:11px;color:var(--text-muted);line-height:1.4;">${escHtml(v.description)}${v.description.length >= 200 ? '...' : ''}</div>` : '';
       return `
         <tr id="row_${v.videoId}" class="${isSelected(v.videoId) ? 'selected' : ''}">
-          <td class="check-col">
-            <input type="checkbox" class="row-check" data-id="${v.videoId}" onchange="toggleRow(this)" ${isSelected(v.videoId) ? 'checked' : ''}>
-          </td>
+          <td class="check-col"><input type="checkbox" class="row-check" data-id="${v.videoId}" onchange="toggleRow(this)" ${isSelected(v.videoId) ? 'checked' : ''}></td>
           <td style="color:var(--text-muted);font-size:12px;">${i+1}</td>
           <td class="thumb-cell">
             <div class="thumb-wrap">
-              <a href="${v.url}" target="_blank">
-                <img src="${v.thumbnail}" alt="" loading="lazy" onerror="this.style.display='none'">
-              </a>
+              <a href="${v.url}" target="_blank"><img src="${v.thumbnail}" alt="" loading="lazy" onerror="this.style.display='none'"></a>
               <span class="thumb-duration">${v.durationStr}</span>
             </div>
           </td>
@@ -1091,42 +897,17 @@
             <div class="video-channel">📺 ${escHtml(v.channel)}</div>
             <div class="video-date">🗓 ${v.publishedStr}</div>
           </td>
-          <td class="metric-cell">
-            <div style="font-size:11px;">${v.channelCreatedStr}</div>
-            <div class="metric-label">CH開設日</div>
-          </td>
-          <td class="metric-cell">
-            <div class="metric-value">${fmtNum(v.views)}</div>
-            <div class="metric-label">再生数</div>
-            <div class="metric-bar-wrap"><div class="metric-bar" style="width:${barWidth}%"></div></div>
-          </td>
-          <td class="metric-cell">
-            <div class="metric-value" style="color:var(--primary)">${fmtNum(v.likes)}</div>
-            <div class="metric-label">いいね</div>
-          </td>
-          <td class="metric-cell">
-            <div class="metric-value" style="color:var(--accent)">${fmtNum(v.comments)}</div>
-            <div class="metric-label">コメント</div>
-          </td>
-          <td class="metric-cell">
-            <div class="metric-value" style="color:var(--green)">${v.engRateStr}</div>
-            <div class="metric-label">エンゲ率</div>
-          </td>
-          <td class="metric-cell">
-            <div class="metric-value" style="font-size:12px;">${v.durationStr}</div>
-            <div class="metric-label">長さ</div>
-          </td>
-          <td class="metric-cell">
-            <div style="font-size:11px;">${v.publishedStr}</div>
-          </td>
-          <td class="metric-cell">
-            <div class="metric-value" style="font-size:12px;">${v.channelSubscribersStr}</div>
-            <div class="metric-label">登録者数</div>
-          </td>
+          <td class="metric-cell"><div style="font-size:11px;">${v.channelCreatedStr}</div><div class="metric-label">CH開設日</div></td>
+          <td class="metric-cell"><div class="metric-value">${fmtNum(v.views)}</div><div class="metric-label">再生数</div><div class="metric-bar-wrap"><div class="metric-bar" style="width:${barWidth}%"></div></div></td>
+          <td class="metric-cell"><div class="metric-value" style="color:var(--primary)">${fmtNum(v.likes)}</div><div class="metric-label">いいね</div></td>
+          <td class="metric-cell"><div class="metric-value" style="color:var(--accent)">${fmtNum(v.comments)}</div><div class="metric-label">コメント</div></td>
+          <td class="metric-cell"><div class="metric-value" style="color:var(--green)">${v.engRateStr}</div><div class="metric-label">エンゲ率</div></td>
+          <td class="metric-cell"><div class="metric-value" style="font-size:12px;">${v.durationStr}</div><div class="metric-label">長さ</div></td>
+          <td class="metric-cell"><div style="font-size:11px;">${v.publishedStr}</div></td>
+          <td class="metric-cell"><div class="metric-value" style="font-size:12px;">${v.channelSubscribersStr}</div><div class="metric-label">登録者数</div></td>
           ${showTags ? `<td class="tags-cell">${tagsHtml}</td>` : ''}
           ${showDesc ? `<td>${descHtml}</td>` : ''}
-        </tr>
-      `;
+        </tr>`;
     }).join('');
 
     renderCards();
@@ -1140,53 +921,54 @@
     if (filteredVideos.length === 0) { cardBody.innerHTML = ''; return; }
     cardBody.innerHTML = filteredVideos.map((v, i) => `
       <div class="video-card ${isSelected(v.videoId) ? 'selected' : ''}" id="card_${v.videoId}">
-        <div class="card-check-row">
-          <input type="checkbox" class="row-check" data-id="${v.videoId}" onchange="toggleRowCard(this)" ${isSelected(v.videoId) ? 'checked' : ''} style="accent-color:var(--primary);width:18px;height:18px;">
-          <span class="card-rank">#${i+1}</span>
+        <div class="card-thumb-wrap">
+          <a href="${v.url}" target="_blank">
+            <img src="${v.thumbnail}" alt="" loading="lazy" onerror="this.parentElement.parentElement.style.paddingTop='0'">
+          </a>
+          <span class="card-rank-badge">#${i+1}</span>
+          <span class="card-dur-badge">${v.durationStr}</span>
+          <span class="card-check-badge">
+            <input type="checkbox" class="row-check" data-id="${v.videoId}" onchange="toggleRowCard(this)" ${isSelected(v.videoId) ? 'checked' : ''}>
+          </span>
         </div>
-        <div class="card-top" style="display:flex;gap:10px;padding:8px 12px 8px;">
-          <div class="card-thumb">
-            <a href="${v.url}" target="_blank">
-              <img src="${v.thumbnail}" alt="" loading="lazy" onerror="this.style.display='none'" style="width:120px;height:68px;object-fit:cover;border-radius:6px;display:block;">
-            </a>
-            <span class="card-thumb-dur" style="position:absolute;bottom:3px;right:3px;background:rgba(0,0,0,0.8);color:white;font-size:10px;padding:1px 5px;border-radius:3px;font-weight:600;">${v.durationStr}</span>
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-weight:700;font-size:14px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
-              <a href="${v.url}" target="_blank" style="color:var(--text);text-decoration:none;">${escHtml(v.title)}</a>
-            </div>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">📺 ${escHtml(v.channel)}</div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">🗓 ${v.publishedStr}</div>
+        <div class="card-body">
+          <div class="card-title"><a href="${v.url}" target="_blank">${escHtml(v.title)}</a></div>
+          <div class="card-meta">
+            <span>📺 ${escHtml(v.channel)}</span>
+            <span>🗓 ${v.publishedStr}</span>
           </div>
         </div>
-        <div class="card-metrics">
-          <div class="card-metric">
-            <div class="card-metric-val">${fmtNum(v.views)}</div>
-            <div class="card-metric-lbl">再生数</div>
+        <div class="card-stats">
+          <div class="card-stat">
+            <div class="card-stat-val">${fmtNum(v.views)}</div>
+            <div class="card-stat-lbl">再生数</div>
           </div>
-          <div class="card-metric">
-            <div class="card-metric-val" style="color:var(--primary)">${fmtNum(v.likes)}</div>
-            <div class="card-metric-lbl">いいね</div>
+          <div class="card-stat">
+            <div class="card-stat-val" style="color:var(--primary)">${fmtNum(v.likes)}</div>
+            <div class="card-stat-lbl">いいね</div>
           </div>
-          <div class="card-metric">
-            <div class="card-metric-val" style="color:var(--accent)">${fmtNum(v.comments)}</div>
-            <div class="card-metric-lbl">コメント</div>
+          <div class="card-stat">
+            <div class="card-stat-val" style="color:var(--accent)">${fmtNum(v.comments)}</div>
+            <div class="card-stat-lbl">コメント</div>
           </div>
-          <div class="card-metric">
-            <div class="card-metric-val" style="color:var(--green)">${v.engRateStr}</div>
-            <div class="card-metric-lbl">エンゲ率</div>
+          <div class="card-stat">
+            <div class="card-stat-val" style="color:var(--green)">${v.engRateStr}</div>
+            <div class="card-stat-lbl">エンゲ率</div>
           </div>
-          <div class="card-metric">
-            <div class="card-metric-val" style="font-size:12px;">${v.channelSubscribersStr}</div>
-            <div class="card-metric-lbl">登録者数</div>
+          <div class="card-stat">
+            <div class="card-stat-val">${v.durationStr}</div>
+            <div class="card-stat-lbl">長さ</div>
           </div>
-          <div class="card-metric">
-            <div class="card-metric-val" style="font-size:11px;">${v.channelCreatedStr}</div>
-            <div class="card-metric-lbl">CH開設日</div>
+          <div class="card-stat">
+            <div class="card-stat-val" style="font-size:12px;">${v.channelSubscribersStr}</div>
+            <div class="card-stat-lbl">登録者数</div>
           </div>
         </div>
-      </div>
-    `).join('');
+        <div class="card-ch-row">
+          <span>📅 開設: ${v.channelCreatedStr}</span>
+        </div>
+      </div>`
+    ).join('');
   }
 
   // ===== SELECTION =====
@@ -1228,7 +1010,11 @@
     const cnt = selectedIds.size;
     const el = document.getElementById('selectedCount');
     document.getElementById('selCount').textContent = cnt;
-    el.style.display = cnt > 0 ? '' : 'none';
+    el.classList.toggle('visible', cnt > 0);
+  }
+  function updateBottomBar() {
+    const bar = document.getElementById('bottomBar');
+    bar.classList.toggle('visible', filteredVideos.length > 0);
   }
   function getExportVideos() {
     if (selectedIds.size > 0) return allVideos.filter(v => selectedIds.has(v.videoId));
@@ -1243,6 +1029,7 @@
     );
     sortResults(true);
     renderTable();
+    updateBottomBar();
   }
   function sortResults(skipRender = false) {
     const s = document.getElementById('sortSelect').value;
@@ -1282,19 +1069,15 @@
     if (videos.length === 0) { showToast('エクスポートする動画がありません', 'error'); return; }
     const showTags = document.getElementById('includeTags').checked;
     const showDesc = document.getElementById('includeDesc').checked;
-
     const headers = ['#','タイトル','チャンネル','CH開設日','再生数','いいね数','コメント数','エンゲージメント率(%)','再生時間','投稿日','登録者数','URL'];
     if (showTags) headers.push('タグ');
     if (showDesc) headers.push('概要欄');
-
     let rows = videos.map((v,i) => {
       const row = [i+1, v.title, v.channel, v.channelCreatedStr, v.views, v.likes, v.comments, v.engRate, v.durationStr, v.publishedStr, v.channelSubscribersStr, v.url];
       if (showTags) row.push(v.tags.join(' | '));
       if (showDesc) row.push(v.description);
       return row;
     });
-
-    // Build XLSX-compatible XML (simple approach)
     const xml = buildXLSX(headers, rows);
     downloadFile(xml, `youtube_research_${dateStr()}.xls`, 'application/vnd.ms-excel;charset=utf-8;');
     showToast(`${videos.length}件をExcel形式で出力しました`, 'success');
@@ -1328,13 +1111,9 @@
     ).join('');
     return `<?xml version="1.0" encoding="UTF-8"?>
 <?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
-  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
   <Worksheet ss:Name="YouTubeリサーチ">
-    <Table>
-      <Row>${headerRow}</Row>
-      ${dataRows}
-    </Table>
+    <Table><Row>${headerRow}</Row>${dataRows}</Table>
   </Worksheet>
 </Workbook>`;
   }
@@ -1382,17 +1161,13 @@
     return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
   }
 
-  // ===== UI helpers =====
+  // ===== UI HELPERS =====
   function showLoading(text) {
     document.getElementById('loadingText').textContent = text;
     document.getElementById('loadingOverlay').classList.add('show');
   }
-  function setLoadingText(text) {
-    document.getElementById('loadingText').textContent = text;
-  }
-  function hideLoading() {
-    document.getElementById('loadingOverlay').classList.remove('show');
-  }
+  function setLoadingText(text) { document.getElementById('loadingText').textContent = text; }
+  function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
   function showToast(msg, type = 'success') {
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
@@ -1408,6 +1183,8 @@
     if (key) {
       document.getElementById('apiKeyInput').value = key;
       updateApiKeyBadge(true);
+      // Collapse API section if key is already set
+      toggleSection('apiBody', 'apiArrow');
     }
   })();
 </script>
