@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>星座トップ３占い</title>
+  <title>星座トップ３占い｜夜宮 星羅</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -36,7 +36,6 @@
       overflow-x: hidden;
     }
 
-    /* 星空背景 */
     body::before {
       content: '';
       position: fixed;
@@ -109,7 +108,147 @@
       letter-spacing: 2px;
     }
 
-    /* カテゴリタブ */
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━
+       占い師プロフィールカード
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .teller-card {
+      background: linear-gradient(145deg, #3a2010, #4d2e14);
+      border: 1px solid rgba(212,168,67,0.35);
+      border-radius: 18px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .teller-card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .teller-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #6b3a1a, #2c1a0e);
+      border: 2px solid rgba(212,168,67,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+      box-shadow: 0 0 14px rgba(212,168,67,0.25);
+    }
+
+    .teller-header-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .teller-name-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
+
+    .teller-name {
+      font-size: 17px;
+      font-weight: bold;
+      color: var(--accent2);
+      letter-spacing: 1px;
+    }
+
+    .teller-name-ruby {
+      font-size: 10px;
+      color: var(--text-faint);
+      letter-spacing: 1px;
+    }
+
+    .teller-role {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    .teller-toggle {
+      font-size: 12px;
+      color: var(--text-faint);
+      transition: transform 0.3s;
+      flex-shrink: 0;
+    }
+
+    .teller-toggle.open {
+      transform: rotate(180deg);
+    }
+
+    /* 展開詳細 */
+    .teller-detail {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+
+    .teller-detail.open {
+      max-height: 400px;
+    }
+
+    .teller-detail-inner {
+      padding: 0 18px 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .teller-bio {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.8;
+      margin: 14px 0 12px;
+    }
+
+    .teller-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .teller-tag {
+      background: rgba(212,168,67,0.1);
+      border: 1px solid rgba(212,168,67,0.25);
+      color: var(--accent);
+      font-size: 10px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .teller-quote {
+      background: rgba(0,0,0,0.2);
+      border-left: 2px solid var(--gold);
+      border-radius: 0 8px 8px 0;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--accent2);
+      line-height: 1.7;
+      font-style: italic;
+    }
+
+    .teller-quote::before {
+      content: '"';
+      font-size: 20px;
+      color: var(--gold);
+      line-height: 0;
+      vertical-align: -6px;
+      margin-right: 2px;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━
+       カテゴリタブ
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━ */
     .category-section {
       margin-bottom: 20px;
     }
@@ -158,13 +297,15 @@
       box-shadow: 0 0 12px rgba(212,168,67,0.3);
     }
 
-    /* メインカード */
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━
+       メインカード
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━ */
     .main-card {
       background: linear-gradient(145deg, var(--surface), var(--surface2));
       border: 1px solid var(--border);
       border-radius: 20px;
       padding: 28px 20px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       box-shadow: 0 8px 32px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.05);
     }
 
@@ -226,9 +367,7 @@
       animation-delay: 0.1s;
     }
 
-    .rank-card.rank-1::before {
-      background: var(--gold);
-    }
+    .rank-card.rank-1::before { background: var(--gold); }
 
     .rank-card.rank-2 {
       background: linear-gradient(135deg, rgba(176,160,144,0.15), rgba(176,160,144,0.05));
@@ -236,9 +375,7 @@
       animation-delay: 0.25s;
     }
 
-    .rank-card.rank-2::before {
-      background: var(--silver);
-    }
+    .rank-card.rank-2::before { background: var(--silver); }
 
     .rank-card.rank-3 {
       background: linear-gradient(135deg, rgba(196,122,58,0.15), rgba(196,122,58,0.05));
@@ -246,9 +383,7 @@
       animation-delay: 0.4s;
     }
 
-    .rank-card.rank-3::before {
-      background: var(--bronze);
-    }
+    .rank-card.rank-3::before { background: var(--bronze); }
 
     @keyframes rankIn {
       from { opacity: 0; transform: translateX(-20px); }
@@ -264,7 +399,6 @@
       justify-content: center;
       font-size: 20px;
       flex-shrink: 0;
-      position: relative;
     }
 
     .rank-1 .rank-badge {
@@ -282,9 +416,7 @@
       box-shadow: 0 0 10px rgba(196,122,58,0.4);
     }
 
-    .sign-info {
-      flex: 1;
-    }
+    .sign-info { flex: 1; }
 
     .sign-name-ja {
       font-size: 18px;
@@ -311,7 +443,97 @@
       line-height: 1.4;
     }
 
-    /* 占うボタン */
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━
+       占い師のひとこと（読後コメント）
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .teller-reading {
+      display: none;
+      background: linear-gradient(145deg, #35200e, #3e2610);
+      border: 1px solid rgba(212,168,67,0.3);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 16px;
+      animation: fadeUp 0.6s ease both;
+      animation-delay: 0.55s;
+      opacity: 0;
+    }
+
+    .teller-reading.show {
+      display: block;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .teller-reading-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .teller-reading-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #6b3a1a, #2c1a0e);
+      border: 1.5px solid rgba(212,168,67,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .teller-reading-meta {
+      flex: 1;
+    }
+
+    .teller-reading-name {
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+
+    .teller-reading-label {
+      font-size: 10px;
+      color: var(--text-faint);
+      letter-spacing: 1px;
+      margin-top: 1px;
+    }
+
+    .teller-reading-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin-bottom: 12px;
+    }
+
+    .teller-reading-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.9;
+      letter-spacing: 0.3px;
+    }
+
+    .teller-reading-text em {
+      font-style: normal;
+      color: var(--accent2);
+    }
+
+    .teller-reading-sign {
+      text-align: right;
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-top: 10px;
+      letter-spacing: 1px;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━
+       占うボタン
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━ */
     .btn-section {
       display: flex;
       gap: 10px;
@@ -353,9 +575,7 @@
       transform: translateY(-2px);
     }
 
-    .btn-divine:active {
-      transform: translateY(0);
-    }
+    .btn-divine:active { transform: translateY(0); }
 
     .btn-random {
       padding: 16px 18px;
@@ -374,10 +594,10 @@
       color: var(--text);
     }
 
-    /* テーマ一覧 */
-    .all-themes {
-      margin-bottom: 20px;
-    }
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━
+       テーマ一覧
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .all-themes { margin-bottom: 20px; }
 
     .section-title {
       font-size: 11px;
@@ -435,6 +655,7 @@
       background: linear-gradient(90deg, var(--text-faint), var(--accent), var(--text-faint));
       background-size: 200% auto;
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: shimmer 1.5s linear infinite;
     }
@@ -448,14 +669,12 @@
       letter-spacing: 1px;
     }
 
-    /* 区切り線 */
     .divider {
       height: 1px;
       background: linear-gradient(90deg, transparent, var(--border), transparent);
       margin: 20px 0;
     }
 
-    /* スクロール用の追加装飾 */
     .scroll-hint {
       text-align: center;
       font-size: 10px;
@@ -474,6 +693,38 @@
     <h1>星座トップ３占い</h1>
     <p class="subtitle">✦ Zodiac Fortune ✦</p>
   </header>
+
+  <!-- 占い師プロフィール -->
+  <div class="teller-card">
+    <div class="teller-card-header" onclick="toggleTeller()">
+      <div class="teller-avatar">🔮</div>
+      <div class="teller-header-info">
+        <div class="teller-name-row">
+          <span class="teller-name">夜宮 星羅</span>
+          <span class="teller-name-ruby">よみや せいら</span>
+        </div>
+        <div class="teller-role">星読み師・タロット占い師・水晶透視</div>
+      </div>
+      <span class="teller-toggle" id="tellerToggle">▼</span>
+    </div>
+    <div class="teller-detail" id="tellerDetail">
+      <div class="teller-detail-inner">
+        <p class="teller-bio">
+          京都出身。6歳のころから祖母の手ほどきで占いを学ぶ。20代でパリに渡りタロットを、その後モロッコで水晶透視を習得。帰国後は東京・下北沢に鑑定サロン「星の間」を主宰。西洋占星術と東洋の霊視を独自に融合させたスタイルが話題を呼び、現在は雑誌やWEBで「星羅」名義のコラムも連載中。「星が見せるものを、ただ正直に伝えるだけ」が信条。
+        </p>
+        <div class="teller-tags">
+          <span class="teller-tag">西洋占星術</span>
+          <span class="teller-tag">タロット</span>
+          <span class="teller-tag">水晶透視</span>
+          <span class="teller-tag">霊視</span>
+          <span class="teller-tag">数秘術</span>
+        </div>
+        <div class="teller-quote">
+          星は嘘をつかない。ただ、読む人間が正直かどうかが問われるだけ。
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- カテゴリタブ -->
   <div class="category-section">
@@ -500,6 +751,20 @@
         <span style="color:var(--text-faint); font-size:13px; letter-spacing:2px;">✦ ✦ ✦</span>
       </div>
     </div>
+  </div>
+
+  <!-- 占い師のひとこと -->
+  <div class="teller-reading" id="tellerReading">
+    <div class="teller-reading-head">
+      <div class="teller-reading-avatar">🔮</div>
+      <div class="teller-reading-meta">
+        <div class="teller-reading-name">夜宮 星羅 より</div>
+        <div class="teller-reading-label">✦ 占い師のひとこと ✦</div>
+      </div>
+    </div>
+    <div class="teller-reading-divider"></div>
+    <p class="teller-reading-text" id="tellerComment"></p>
+    <div class="teller-reading-sign">— 星の間にて、星羅</div>
   </div>
 
   <!-- ボタン -->
@@ -529,71 +794,293 @@
 <script>
   // 12星座データ
   const signs = [
-    { ja: '牡羊座', en: 'Aries', symbol: '♈', emoji: '🐏' },
-    { ja: '牡牛座', en: 'Taurus', symbol: '♉', emoji: '🐂' },
-    { ja: '双子座', en: 'Gemini', symbol: '♊', emoji: '👯' },
-    { ja: '蟹座',   en: 'Cancer', symbol: '♋', emoji: '🦀' },
-    { ja: '獅子座', en: 'Leo',    symbol: '♌', emoji: '🦁' },
-    { ja: '乙女座', en: 'Virgo',  symbol: '♍', emoji: '🌾' },
-    { ja: '天秤座', en: 'Libra',  symbol: '♎', emoji: '⚖️' },
-    { ja: '蠍座',   en: 'Scorpio',symbol: '♏', emoji: '🦂' },
+    { ja: '牡羊座', en: 'Aries',       symbol: '♈', emoji: '🐏' },
+    { ja: '牡牛座', en: 'Taurus',      symbol: '♉', emoji: '🐂' },
+    { ja: '双子座', en: 'Gemini',      symbol: '♊', emoji: '👯' },
+    { ja: '蟹座',   en: 'Cancer',      symbol: '♋', emoji: '🦀' },
+    { ja: '獅子座', en: 'Leo',         symbol: '♌', emoji: '🦁' },
+    { ja: '乙女座', en: 'Virgo',       symbol: '♍', emoji: '🌾' },
+    { ja: '天秤座', en: 'Libra',       symbol: '♎', emoji: '⚖️' },
+    { ja: '蠍座',   en: 'Scorpio',     symbol: '♏', emoji: '🦂' },
     { ja: '射手座', en: 'Sagittarius', symbol: '♐', emoji: '🏹' },
     { ja: '山羊座', en: 'Capricorn',   symbol: '♑', emoji: '🐐' },
     { ja: '水瓶座', en: 'Aquarius',    symbol: '♒', emoji: '🏺' },
     { ja: '魚座',   en: 'Pisces',      symbol: '♓', emoji: '🐟' },
   ];
 
-  // テーマデータ
+  // テーマデータ（tellerComment：夜宮星羅の一言付き）
   const themes = [
-    // 恋愛・相性
-    { cat: 'love', emoji: '💖', title: '幸せな恋愛ができる星座', sub: '今年の恋愛運トップ３', comments: ['恋のチャンス到来！積極的に行動を','安定した関係を築けそう','素敵な出会いの予感が…'] },
-    { cat: 'love', emoji: '💔', title: 'メンヘラな星座', sub: '感情豊かすぎるトップ３', comments: ['愛されたい気持ちが溢れてしまう','依存しやすい傾向あり','感情の波が激しいけど純粋'] },
-    { cat: 'love', emoji: '🔥', title: '情熱的な恋をする星座', sub: '恋愛に全力投球トップ３', comments: ['一度好きになったら猪突猛進','愛の炎は誰にも消せない','熱すぎて相手が引くこともある'] },
-    { cat: 'love', emoji: '🧊', title: '恋愛に奥手な星座', sub: '告白できないトップ３', comments: ['好きでも友達のままになりがち','気持ちを伝えるのが苦手','タイミングを見計らいすぎる'] },
-    { cat: 'love', emoji: '💘', title: 'モテる星座', sub: '自然と人が集まるトップ３', comments: ['特に何もしなくても人が寄ってくる','魅力が自然と滲み出ている','誰からも好かれる雰囲気がある'] },
-    { cat: 'love', emoji: '💑', title: '長続きするカップルの星座', sub: '安定した愛のトップ３', comments: ['一度決めたら浮気しない誠実さ','相手を大切にする気遣いの天才','信頼関係を何より大切にする'] },
-    { cat: 'love', emoji: '😈', title: '浮気しやすい星座', sub: 'ちょっと危険なトップ３', comments: ['刺激を求めて目移りしがち','退屈に耐えられないタイプ','チャンスがあればついつい…'] },
-    { cat: 'love', emoji: '🌹', title: '一途に愛せる星座', sub: 'ピュアな恋心トップ３', comments: ['この人と決めたら命がけ','愛の純粋さは誰にも負けない','浮気は絶対にしない誠実さ'] },
+    // ── 恋愛・相性 ──
+    {
+      cat: 'love', emoji: '💖',
+      title: '幸せな恋愛ができる星座',
+      sub: '今年の恋愛運トップ３',
+      comments: ['恋のチャンス到来！積極的に行動を', '安定した関係を築けそう', '素敵な出会いの予感が…'],
+      tellerComment: '恋が実る瞬間、星々は特別な輝き方をします。この結果を水晶球で見た時、私の胸もほんのり温かくなりました。ふふ、上位の星座の皆さん、恋の予感を大切に育ててくださいね。',
+    },
+    {
+      cat: 'love', emoji: '💔',
+      title: 'メンヘラな星座',
+      sub: '感情豊かすぎるトップ３',
+      comments: ['愛されたい気持ちが溢れてしまう', '依存しやすい傾向あり', '感情の波が激しいけど純粋'],
+      tellerComment: '深く愛するほど、深く傷つく。それは弱さではなく、魂の豊かさです。祖母もよく言っていました、「泣ける人は、それだけ愛せる人」と。その感情の深さを、誰かが必ずわかってくれます。',
+    },
+    {
+      cat: 'love', emoji: '🔥',
+      title: '情熱的な恋をする星座',
+      sub: '恋愛に全力投球トップ３',
+      comments: ['一度好きになったら猪突猛進', '愛の炎は誰にも消せない', '熱すぎて相手が引くこともある'],
+      tellerComment: '炎のような恋愛を見るたびに、私はパリで学んだ「炎のタロット」を思い出します。燃え上がる前に、相手の心の準備も確かめてあげてくださいね。その熱さは、本物の愛の証です。',
+    },
+    {
+      cat: 'love', emoji: '🧊',
+      title: '恋愛に奥手な星座',
+      sub: '告白できないトップ３',
+      comments: ['好きでも友達のままになりがち', '気持ちを伝えるのが苦手', 'タイミングを見計らいすぎる'],
+      tellerComment: '奥ゆかしさの中に、深い愛が静かに眠っています。私も若い頃は…ふふ、それは占いの秘密ですね。勇気を出す日が、星はちゃんと準備してくれています。',
+    },
+    {
+      cat: 'love', emoji: '💘',
+      title: 'モテる星座',
+      sub: '自然と人が集まるトップ３',
+      comments: ['特に何もしなくても人が寄ってくる', '魅力が自然と滲み出ている', '誰からも好かれる雰囲気がある'],
+      tellerComment: '生まれ持った星の引力というものがあります。この星座の方、あなたが気づいていないところで、誰かの心をすでに動かしているかもしれません。その輝きを、どうか隠さないでください。',
+    },
+    {
+      cat: 'love', emoji: '💑',
+      title: '長続きするカップルの星座',
+      sub: '安定した愛のトップ３',
+      comments: ['一度決めたら浮気しない誠実さ', '相手を大切にする気遣いの天才', '信頼関係を何より大切にする'],
+      tellerComment: '真の愛は、月が欠けても満ちるように、静かに続くもの。この結果を見るたびに、私は星の誠実さに感動します。長く愛し続けることの美しさは、タロットのどのカードよりも尊い。',
+    },
+    {
+      cat: 'love', emoji: '😈',
+      title: '浮気しやすい星座',
+      sub: 'ちょっと危険なトップ３',
+      comments: ['刺激を求めて目移りしがち', '退屈に耐えられないタイプ', 'チャンスがあればついつい…'],
+      tellerComment: '星に罪はありません。ただ、その星がどちらの方向を向くかが問われます。自分の心と、しっかり向き合う夜を作ってください。水晶球が揺れています。',
+    },
+    {
+      cat: 'love', emoji: '🌹',
+      title: '一途に愛せる星座',
+      sub: 'ピュアな恋心トップ３',
+      comments: ['この人と決めたら命がけ', '愛の純粋さは誰にも負けない', '浮気は絶対にしない誠実さ'],
+      tellerComment: '愛の純粋さは、夜空で一番明るい星に似ています。この星座の方の一途さ、きっと大切な誰かの心にすでに届いています。その真っ直ぐさを、どうか誇りに思ってください。',
+    },
 
-    // 運勢
-    { cat: 'fortune', emoji: '💰', title: '金運がある星座', sub: 'お金が集まるトップ３', comments: ['臨時収入が入りそう','投資センスが光る','無駄遣いしないで貯まる'] },
-    { cat: 'fortune', emoji: '📉', title: '散財しやすい星座', sub: 'お金が出ていくトップ３', comments: ['衝動買いが止まらない','気づいたら財布が空に','でも使い方がおしゃれ'] },
-    { cat: 'fortune', emoji: '💼', title: '仕事運がある星座', sub: 'キャリアアップトップ３', comments: ['昇進・昇給のチャンス大','実力が認められる時期','リーダーとして輝ける'] },
-    { cat: 'fortune', emoji: '🍀', title: '今年いちばんラッキーな星座', sub: '運気MAXトップ３', comments: ['何をやってもうまくいく','運命の歯車が噛み合う','宝くじを買ってみては？'] },
-    { cat: 'fortune', emoji: '😓', title: '今年いちばんアンラッキーな星座', sub: '試練の時トップ３', comments: ['踏ん張り時！乗り越えれば成長','小さなミスが続きそう','慎重に行動することが大切'] },
-    { cat: 'fortune', emoji: '🌸', title: '対人運がある星座', sub: '人間関係トップ３', comments: ['新しい縁がどんどん広がる','周りからの信頼が厚い','人脈が財産になる'] },
-    { cat: 'fortune', emoji: '🏥', title: '健康に注意が必要な星座', sub: '体を労って！トップ３', comments: ['睡眠をしっかりとろう','食生活の見直しを','無理は禁物、休養優先で'] },
-    { cat: 'fortune', emoji: '✈️', title: '旅行運がある星座', sub: '旅に出るべきトップ３', comments: ['旅先で素敵な出会いが','移動中に幸運が舞い込む','異文化との出会いが刺激に'] },
+    // ── 運勢 ──
+    {
+      cat: 'fortune', emoji: '💰',
+      title: '金運がある星座',
+      sub: 'お金が集まるトップ３',
+      comments: ['臨時収入が入りそう', '投資センスが光る', '無駄遣いしないで貯まる'],
+      tellerComment: '金と星は似ています。引き寄せる力を持つ人のところへ、自然と集まってくる。この結果が出た方、財布の紐を少し緩めてもいいかもしれませんよ。豊かさを循環させることが、さらなる運気を呼びます。',
+    },
+    {
+      cat: 'fortune', emoji: '📉',
+      title: '散財しやすい星座',
+      sub: 'お金が出ていくトップ３',
+      comments: ['衝動買いが止まらない', '気づいたら財布が空に', 'でも使い方がおしゃれ'],
+      tellerComment: 'ふふふ…お金は使う人を好きになることもあります。モロッコの師匠は「散財の後には縁が来る」と言っていました。使い方に美学を持てば、それは散財ではなく投資です。',
+    },
+    {
+      cat: 'fortune', emoji: '💼',
+      title: '仕事運がある星座',
+      sub: 'キャリアアップトップ３',
+      comments: ['昇進・昇給のチャンス大', '実力が認められる時期', 'リーダーとして輝ける'],
+      tellerComment: 'キャリアの星が輝くとき、それを掴めるのは準備ができている人だけです。この結果が出た方、躊躇している時間はありません。今すぐ動き出してください。',
+    },
+    {
+      cat: 'fortune', emoji: '🍀',
+      title: '今年いちばんラッキーな星座',
+      sub: '運気MAXトップ３',
+      comments: ['何をやってもうまくいく', '運命の歯車が噛み合う', '宝くじを買ってみては？'],
+      tellerComment: 'これほど強い運気は、私の占い師生活でも数えるほどしか見たことがありません。水晶球が、珍しいほど明るく輝きました。この星座の方、思い切って動いてください。星が全力で後押ししています。',
+    },
+    {
+      cat: 'fortune', emoji: '😓',
+      title: '今年いちばんアンラッキーな星座',
+      sub: '試練の時トップ３',
+      comments: ['踏ん張り時！乗り越えれば成長', '小さなミスが続きそう', '慎重に行動することが大切'],
+      tellerComment: '試練の星もまた、あなたを磨く星です。私が見てきた中で、大きな試練を越えた方ほど、その後に輝かしい運命が待っていました。今は、ただ丁寧に、一日一日を生きてください。',
+    },
+    {
+      cat: 'fortune', emoji: '🌸',
+      title: '対人運がある星座',
+      sub: '人間関係トップ３',
+      comments: ['新しい縁がどんどん広がる', '周りからの信頼が厚い', '人脈が財産になる'],
+      tellerComment: '人の縁は、目には見えない星の糸で結ばれています。今年この星座の方が出会う人、大切にしてくださいね。その縁のひとつが、人生そのものを変えるかもしれません。',
+    },
+    {
+      cat: 'fortune', emoji: '🏥',
+      title: '健康に注意が必要な星座',
+      sub: '体を労って！トップ３',
+      comments: ['睡眠をしっかりとろう', '食生活の見直しを', '無理は禁物、休養優先で'],
+      tellerComment: '体は、星のエネルギーを宿す器です。器が傷んでは、どんな良い運気も入ってきません。星が警告を出しているとき、聞こえないふりをしてはいけない。私からも、どうかご自愛をと伝えたい。',
+    },
+    {
+      cat: 'fortune', emoji: '✈️',
+      title: '旅行運がある星座',
+      sub: '旅に出るべきトップ３',
+      comments: ['旅先で素敵な出会いが', '移動中に幸運が舞い込む', '異文化との出会いが刺激に'],
+      tellerComment: '私がモロッコで水晶透視を学んだのも、旅の途中のことでした。この星座の方、旅先で人生を変える何かに出会えるかもしれません。行き先はどこでも構いません。動くことに意味があります。',
+    },
 
-    // 性格・特徴
-    { cat: 'personality', emoji: '😊', title: '幸せになれる星座', sub: 'ポジティブ力トップ３', comments: ['自然体でいるだけで幸運体質','笑顔が幸せを引き寄せる','感謝の気持ちが強い'] },
-    { cat: 'personality', emoji: '🧠', title: '頭がいい星座', sub: '知的センストップ３', comments: ['直感と論理のバランスが完璧','記憶力が群を抜いて高い','問題解決能力が卓越している'] },
-    { cat: 'personality', emoji: '😤', title: '頑固な星座', sub: 'ゆずらないトップ３', comments: ['一度決めたら絶対に曲げない','信念の強さは最強クラス','融通が利かないのがたまにキズ'] },
-    { cat: 'personality', emoji: '🎭', title: 'ミステリアスな星座', sub: '謎めいているトップ３', comments: ['何を考えているかわからない','近づきたいけど遠い存在感','その謎めいた魅力に人が惹かれる'] },
-    { cat: 'personality', emoji: '😂', title: '面白い星座', sub: '笑いのセンストップ３', comments: ['天然キャラでみんなを和ませる','ユーモアのセンスが抜群','いるだけで場が明るくなる'] },
-    { cat: 'personality', emoji: '😡', title: '怒りっぽい星座', sub: 'キレやすいトップ３', comments: ['沸点が低め、でも後を引かない','正義感が強すぎて爆発することも','感情を隠せないタイプ'] },
-    { cat: 'personality', emoji: '🤗', title: '優しい星座', sub: '心が広いトップ３', comments: ['誰にでも分け隔てなく親切','困った人を放っておけない','その優しさが時に利用されることも'] },
-    { cat: 'personality', emoji: '🤔', title: '心配性な星座', sub: 'くよくよするトップ３', comments: ['起きてもいないことを心配する','準備万端すぎるほど慎重','でもそのおかげでミスが少ない'] },
-    { cat: 'personality', emoji: '👑', title: 'プライドが高い星座', sub: '自信満々トップ３', comments: ['負けを認めるのが苦手','常に一番でいたいタイプ','その自信が成功の源でもある'] },
-    { cat: 'personality', emoji: '🦋', title: '自由人な星座', sub: '縛られないトップ３', comments: ['ルールより自分の感覚を優先','どこにでも飛んでいく行動力','束縛されると一気に萎える'] },
-    { cat: 'personality', emoji: '💪', title: 'ストレス耐性が高い星座', sub: 'タフなトップ３', comments: ['多少のことではへこたれない','逆境が燃料になるタイプ','打たれ強さは誰にも負けない'] },
-    { cat: 'personality', emoji: '😴', title: 'マイペースな星座', sub: '我が道を行くトップ３', comments: ['急かされても全く動じない','自分のペースを乱せば本領発揮できない','独自のリズムで着実に進む'] },
+    // ── 性格・特徴 ──
+    {
+      cat: 'personality', emoji: '😊',
+      title: '幸せになれる星座',
+      sub: 'ポジティブ力トップ３',
+      comments: ['自然体でいるだけで幸運体質', '笑顔が幸せを引き寄せる', '感謝の気持ちが強い'],
+      tellerComment: '幸せは星に書かれているものではなく、その人自身が持つ光です。でもその光が特に輝いている星座というものが、確かに存在します。この結果の星座の方、その光を信じて生きてください。',
+    },
+    {
+      cat: 'personality', emoji: '🧠',
+      title: '頭がいい星座',
+      sub: '知的センストップ３',
+      comments: ['直感と論理のバランスが完璧', '記憶力が群を抜いて高い', '問題解決能力が卓越している'],
+      tellerComment: '知性とは、星の地図を読む力に似ています。この星座の方、その地図をどう使うかで、運命は大きく変わります。持っているだけでは意味がない。どうか惜しみなく使ってください。',
+    },
+    {
+      cat: 'personality', emoji: '😤',
+      title: '頑固な星座',
+      sub: 'ゆずらないトップ３',
+      comments: ['一度決めたら絶対に曲げない', '信念の強さは最強クラス', '融通が利かないのがたまにキズ'],
+      tellerComment: 'ふふ、頑固さは弱さではなく、魂の深さの表れです。この星座の芯の強さ、私は密かに尊敬しています。ただ、時には月のように満ち欠けする柔軟さも、星は喜びます。',
+    },
+    {
+      cat: 'personality', emoji: '🎭',
+      title: 'ミステリアスな星座',
+      sub: '謎めいているトップ３',
+      comments: ['何を考えているかわからない', '近づきたいけど遠い存在感', 'その謎めいた魅力に人が惹かれる'],
+      tellerComment: '謎めいた存在の中に、深い宇宙の秘密が宿っています。私もこういう星座の方を鑑定するとき、少しだけ緊張するんです。水晶球がいつもより静かに、でも深く輝くのです。',
+    },
+    {
+      cat: 'personality', emoji: '😂',
+      title: '面白い星座',
+      sub: '笑いのセンストップ３',
+      comments: ['天然キャラでみんなを和ませる', 'ユーモアのセンスが抜群', 'いるだけで場が明るくなる'],
+      tellerComment: '笑いは、最高の星の魔法です。この星座の方がいるだけで、周りの運気まで上がっている。その笑顔の力を、もっと信じてください。星もきっと笑っています。',
+    },
+    {
+      cat: 'personality', emoji: '😡',
+      title: '怒りっぽい星座',
+      sub: 'キレやすいトップ３',
+      comments: ['沸点が低め、でも後を引かない', '正義感が強すぎて爆発することも', '感情を隠せないタイプ'],
+      tellerComment: '炎の星は、暗闇を照らす力でもあります。怒りの源には、必ず強い正義心や深い愛情があるはず。その炎、上手に使えば最強の武器になります。',
+    },
+    {
+      cat: 'personality', emoji: '🤗',
+      title: '優しい星座',
+      sub: '心が広いトップ３',
+      comments: ['誰にでも分け隔てなく親切', '困った人を放っておけない', 'その優しさが時に利用されることも'],
+      tellerComment: '優しさは月の光に似ています。強くはないけれど、暗闇をやわらかく照らす。この星座の方に守られている人は、本当に幸せです。ただ、自分自身も大切にしてあげてください。',
+    },
+    {
+      cat: 'personality', emoji: '🤔',
+      title: '心配性な星座',
+      sub: 'くよくよするトップ３',
+      comments: ['起きてもいないことを心配する', '準備万端すぎるほど慎重', 'でもそのおかげでミスが少ない'],
+      tellerComment: '不思議なことに、心配性の方ほど運を味方にしていることが多い。準備が万端なところへ、幸運も来やすいものなのです。その慎重さは、才能です。',
+    },
+    {
+      cat: 'personality', emoji: '👑',
+      title: 'プライドが高い星座',
+      sub: '自信満々トップ３',
+      comments: ['負けを認めるのが苦手', '常に一番でいたいタイプ', 'その自信が成功の源でもある'],
+      tellerComment: '星も、高いところで輝くもの。このプライドは、成功のエネルギーです。ただ…周りへの感謝も、忘れないでくださいね。高く輝くほど、人は温もりを求めます。',
+    },
+    {
+      cat: 'personality', emoji: '🦋',
+      title: '自由人な星座',
+      sub: '縛られないトップ３',
+      comments: ['ルールより自分の感覚を優先', 'どこにでも飛んでいく行動力', '束縛されると一気に萎える'],
+      tellerComment: '風の星座は、どこまでも飛んでいく。私も若い頃、そんな魂に強く憧れました。縛られない魂こそ、星に最も愛される存在です。どうか、翼を折らないで。',
+    },
+    {
+      cat: 'personality', emoji: '💪',
+      title: 'ストレス耐性が高い星座',
+      sub: 'タフなトップ３',
+      comments: ['多少のことではへこたれない', '逆境が燃料になるタイプ', '打たれ強さは誰にも負けない'],
+      tellerComment: '鋼の心というものがあります。この星座の方の歴史を星で読むと、乗り越えてきたものの多さに、私はいつも圧倒されます。その強さは、あなたの誇りです。',
+    },
+    {
+      cat: 'personality', emoji: '😴',
+      title: 'マイペースな星座',
+      sub: '我が道を行くトップ３',
+      comments: ['急かされても全く動じない', '自分のペースを乱せば本領発揮できない', '独自のリズムで着実に進む'],
+      tellerComment: '宇宙も、実はマイペースに動いています。この星座の方のリズムは、実は宇宙のリズムと共鳴しているのかもしれません。急かされても、どうか惑わされないでください。',
+    },
 
-    // 日常・生活
-    { cat: 'life', emoji: '🍳', title: '料理上手な星座', sub: 'キッチンのトップ３', comments: ['丁寧さと創造性のバランスが完璧','家族に「またこれ作って」と言われる','料理が愛情表現になっている'] },
-    { cat: 'life', emoji: '🧹', title: 'きれい好きな星座', sub: '部屋が片付いているトップ３', comments: ['汚れが気になって放っておけない','整理整頓が快感になっている','清潔感が生き甲斐のひとつ'] },
-    { cat: 'life', emoji: '🐌', title: 'ズボラな星座', sub: 'だらしないトップ３', comments: ['見えないところはとりあえず放置','「明日やろう」が口癖','でもいざとなったら一気にやり遂げる'] },
-    { cat: 'life', emoji: '🌙', title: '夜型な星座', sub: '夜に輝くトップ３', comments: ['深夜に一番集中できる','日が沈むと元気になるタイプ','朝は人に話しかけないでほしい'] },
-    { cat: 'life', emoji: '☀️', title: '朝型な星座', sub: '早起き上手トップ３', comments: ['朝の静かな時間が至福のひととき','早起きして一日を有効活用','夜は10時には眠くなる'] },
-    { cat: 'life', emoji: '🏃', title: '行動力がある星座', sub: 'すぐ動くトップ３', comments: ['考えるより先に体が動く','チャンスを逃さない瞬発力','ただし計画性が少し足りない'] },
-    { cat: 'life', emoji: '🐢', title: '慎重すぎる星座', sub: '考えすぎるトップ３', comments: ['行動する前に100回考える','失敗を恐れて動けないことも','でも準備は誰より完璧'] },
-    { cat: 'life', emoji: '🎨', title: 'センスがいい星座', sub: 'おしゃれ上手トップ３', comments: ['ファッションセンスが天性','インテリアのセンスも抜群','何でも自分色に染められる'] },
-    { cat: 'life', emoji: '📱', title: 'SNS依存な星座', sub: 'スマホを手放せないトップ３', comments: ['通知が来ると即チェック','いいね数が気になって仕方ない','シェアしないと気が済まない'] },
+    // ── 日常・生活 ──
+    {
+      cat: 'life', emoji: '🍳',
+      title: '料理上手な星座',
+      sub: 'キッチンのトップ３',
+      comments: ['丁寧さと創造性のバランスが完璧', '家族に「またこれ作って」と言われる', '料理が愛情表現になっている'],
+      tellerComment: '食べることは、生命の星への感謝の儀式。この星座の方の料理には、そういう愛が自然と込められているはずです。いつか食べてみたい、と本気で思います。',
+    },
+    {
+      cat: 'life', emoji: '🧹',
+      title: 'きれい好きな星座',
+      sub: '部屋が片付いているトップ３',
+      comments: ['汚れが気になって放っておけない', '整理整頓が快感になっている', '清潔感が生き甲斐のひとつ'],
+      tellerComment: '清潔な空間には、良い気が宿ります。風水でも占星術でも、清潔さは運気の基本。この星座の方のお家には、きっと星の運気も自然と集まっているはずです。',
+    },
+    {
+      cat: 'life', emoji: '🐌',
+      title: 'ズボラな星座',
+      sub: 'だらしないトップ３',
+      comments: ['見えないところはとりあえず放置', '「明日やろう」が口癖', 'でもいざとなったら一気にやり遂げる'],
+      tellerComment: 'ふふふ…ズボラにも才能があります。省エネの天才、とも言えます。いざというときの爆発力、私はちゃんと水晶球で見ていますよ。',
+    },
+    {
+      cat: 'life', emoji: '🌙',
+      title: '夜型な星座',
+      sub: '夜に輝くトップ３',
+      comments: ['深夜に一番集中できる', '日が沈むと元気になるタイプ', '朝は人に話しかけないでほしい'],
+      tellerComment: '夜は星が最も力を持つ時間。この星座の方は、夜になると本来の力が目覚める「月の子」です。その夜の時間を、大切に使ってください。星も一緒に目覚めています。',
+    },
+    {
+      cat: 'life', emoji: '☀️',
+      title: '朝型な星座',
+      sub: '早起き上手トップ３',
+      comments: ['朝の静かな時間が至福のひととき', '早起きして一日を有効活用', '夜は10時には眠くなる'],
+      tellerComment: '夜明けの星は、一日の中で最も清らかな光を持ちます。早起きは、星との対話の時間。この星座の方には、朝の静けさの中に特別な運気が宿っています。',
+    },
+    {
+      cat: 'life', emoji: '🏃',
+      title: '行動力がある星座',
+      sub: 'すぐ動くトップ３',
+      comments: ['考えるより先に体が動く', 'チャンスを逃さない瞬発力', 'ただし計画性が少し足りない'],
+      tellerComment: '星は、動く人のもとへ近づいてきます。この星座の行動力、私の占いを一番生かせるタイプです。どんどん動いて、星を引き寄せてください。',
+    },
+    {
+      cat: 'life', emoji: '🐢',
+      title: '慎重すぎる星座',
+      sub: '考えすぎるトップ３',
+      comments: ['行動する前に100回考える', '失敗を恐れて動けないことも', 'でも準備は誰より完璧'],
+      tellerComment: '慎重さは、最高の護符です。この星座の方の慎重さが、知らないうちに多くの危機から守ってきた。その力を、もっと信じていいんですよ。',
+    },
+    {
+      cat: 'life', emoji: '🎨',
+      title: 'センスがいい星座',
+      sub: 'おしゃれ上手トップ３',
+      comments: ['ファッションセンスが天性', 'インテリアのセンスも抜群', '何でも自分色に染められる'],
+      tellerComment: '美の女神ヴィーナスの加護が強い星座たち。私のタロットでも、美のカードが特に輝きました。そのセンス、もっと世界に見せてください。',
+    },
+    {
+      cat: 'life', emoji: '📱',
+      title: 'SNS依存な星座',
+      sub: 'スマホを手放せないトップ３',
+      comments: ['通知が来ると即チェック', 'いいね数が気になって仕方ない', 'シェアしないと気が済まない'],
+      tellerComment: 'ふふ、現代の星読みはSNSでも行われる時代になりました。でもね、いいねの数よりも、リアルの縁の方がずっと星に近い場所にあります。たまには、スマホを置いて夜空を見上げてください。',
+    },
   ];
 
   let currentTheme = null;
   let currentCat = 'all';
-  let currentResult = null;
+  let tellerOpen = false;
 
   // 星を生成
   function createStars() {
@@ -614,11 +1101,18 @@
     }
   }
 
+  // 占い師プロフィール開閉
+  function toggleTeller() {
+    tellerOpen = !tellerOpen;
+    document.getElementById('tellerDetail').classList.toggle('open', tellerOpen);
+    document.getElementById('tellerToggle').classList.toggle('open', tellerOpen);
+  }
+
   // テーマグリッドを生成
   function renderThemeGrid() {
     const filtered = currentCat === 'all' ? themes : themes.filter(t => t.cat === currentCat);
     const grid = document.getElementById('themeGrid');
-    grid.innerHTML = filtered.map((t, i) => `
+    grid.innerHTML = filtered.map(t => `
       <div class="theme-item ${currentTheme === t ? 'active' : ''}" onclick="selectTheme(${themes.indexOf(t)})">
         <span class="theme-item-emoji">${t.emoji}</span>
         <div class="theme-item-text">${t.title}</div>
@@ -691,9 +1185,18 @@
       </div>
     `).join('');
 
+    // 占い師コメント表示
+    const readingEl = document.getElementById('tellerReading');
+    const commentEl = document.getElementById('tellerComment');
+    const topSign = top3[0];
+    commentEl.innerHTML = `<em>${topSign.ja}</em>が１位に輝きました。${theme.tellerComment}`;
+    readingEl.classList.remove('show');
+    void readingEl.offsetWidth; // reflow for re-animation
+    readingEl.classList.add('show');
+
     renderThemeGrid();
 
-    // ボタンエフェクト
+    // ボタンテキスト更新
     const btn = document.getElementById('btnDivine');
     btn.textContent = '✨ もう一度占う ✨';
   }
