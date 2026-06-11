@@ -21,6 +21,9 @@
       --accent-light: #ebf8ff;
       --green: #38a169;
       --green-light: #f0fff4;
+      --purple: #805ad5;
+      --purple-light: #faf5ff;
+      --orange: #dd6b20;
       --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
       --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
       --radius: 12px;
@@ -37,6 +40,7 @@
         --primary-light: #2d1a1a;
         --accent-light: #1a2740;
         --green-light: #1a2d22;
+        --purple-light: #1e1a2d;
         --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
         --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
       }
@@ -78,7 +82,7 @@
 
     /* ====== MAIN CONTAINER ====== */
     .container {
-      max-width: 1400px;
+      max-width: 1600px;
       margin: 0 auto;
       padding: 14px 12px 100px;
     }
@@ -313,6 +317,22 @@
       background: var(--primary-light); color: var(--primary);
       border: 1px solid var(--primary); margin: 1px;
     }
+    .category-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px;
+      background: var(--purple-light); color: var(--purple);
+      border: 1px solid var(--purple); font-weight: 600; white-space: nowrap;
+    }
+    .desc-cell {
+      min-width: 200px; max-width: 280px;
+      font-size: 11px; color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .desc-text {
+      max-height: 100px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
 
     /* ====== MOBILE CARDS ====== */
     .card-list { display: none; }
@@ -358,6 +378,12 @@
       width: 20px; height: 20px;
       accent-color: var(--primary); cursor: pointer;
     }
+    .card-cat-badge {
+      position: absolute; bottom: 8px; left: 8px;
+      background: rgba(128,90,213,0.9); color: white;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 4px;
+    }
 
     /* Card body */
     .card-body { padding: 10px 12px 0; }
@@ -396,7 +422,7 @@
     .card-ch-row {
       padding: 7px 12px 10px;
       font-size: 11px; color: var(--text-muted);
-      display: flex; gap: 14px; flex-wrap: wrap;
+      display: flex; gap: 10px; flex-wrap: wrap;
       border-top: 1px solid var(--border);
     }
 
@@ -459,14 +485,12 @@
     .bottom-bar .btn { flex: 1; font-size: 13px; }
 
     @media (min-width: 768px) {
-      /* Desktop: show table, hide cards & bottom bar */
       .table-scroll { display: block !important; }
       .card-list { display: none !important; }
       .bottom-bar { display: none !important; }
     }
 
     @media (max-width: 767px) {
-      /* Mobile: hide table, show cards */
       .table-scroll { display: none !important; }
       .card-list { display: block; }
     }
@@ -573,7 +597,7 @@
           <label class="option-check"><input type="checkbox" id="safeSearch"> セーフサーチ</label>
           <label class="option-check"><input type="checkbox" id="onlyHD"> HD動画のみ</label>
           <label class="option-check"><input type="checkbox" id="includeTags"> タグ情報</label>
-          <label class="option-check"><input type="checkbox" id="includeDesc"> 概要欄</label>
+          <label class="option-check"><input type="checkbox" id="includeDesc"> 概要欄（全文）</label>
         </div>
       </div>
       <div class="search-btn-wrap">
@@ -590,7 +614,6 @@
         <strong id="resultCount">0</strong> 件
         <span id="queryLabel" style="font-size:12px; color:var(--text-muted);"></span>
       </div>
-      <!-- Desktop export buttons -->
       <div class="desktop-export">
         <button class="btn btn-secondary btn-sm" onclick="selectAll()">全選択</button>
         <button class="btn btn-secondary btn-sm" onclick="clearSelection()">選択解除</button>
@@ -609,17 +632,19 @@
     <!-- Filter + Sort -->
     <div class="filter-row">
       <input type="text" class="filter-input" id="filterInput"
-             placeholder="🔎 タイトル・チャンネルで絞込" oninput="filterResults()">
+             placeholder="🔎 タイトル・チャンネル・カテゴリで絞込" oninput="filterResults()">
       <select class="sort-select" id="sortSelect" onchange="sortResults()">
         <option value="">並び替え</option>
         <option value="views_desc">再生数↓</option>
         <option value="views_asc">再生数↑</option>
+        <option value="vpd_desc">1日再生数↓</option>
         <option value="likes_desc">いいね↓</option>
         <option value="comments_desc">コメント↓</option>
+        <option value="engagement_desc">エンゲ率↓</option>
         <option value="date_desc">新しい順</option>
         <option value="date_asc">古い順</option>
         <option value="duration_desc">長い順</option>
-        <option value="engagement_desc">エンゲ↓</option>
+        <option value="subs_desc">登録者数↓</option>
       </select>
     </div>
 
@@ -633,16 +658,20 @@
               <th>#</th>
               <th>サムネイル</th>
               <th>タイトル・チャンネル</th>
-              <th class="metric-cell">CH開設日</th>
+              <th>カテゴリ</th>
               <th class="metric-cell">再生数</th>
+              <th class="metric-cell">1日再生数</th>
               <th class="metric-cell">いいね数</th>
               <th class="metric-cell">コメント</th>
               <th class="metric-cell">エンゲ率</th>
               <th class="metric-cell">再生時間</th>
               <th class="metric-cell">投稿日</th>
               <th class="metric-cell">登録者数</th>
+              <th class="metric-cell">CH開設日</th>
+              <th class="metric-cell">CH総動画</th>
+              <th class="metric-cell">CH総再生</th>
               <th id="tagsHeader" style="display:none;">タグ</th>
-              <th id="descHeader" style="display:none; min-width:160px;">概要欄</th>
+              <th id="descHeader" style="display:none; min-width:200px;">概要欄</th>
             </tr>
           </thead>
           <tbody id="resultBody"></tbody>
@@ -670,10 +699,20 @@
 </div>
 
 <script>
+  // ===== CATEGORY MAP =====
+  const YT_CATEGORIES = {
+    '1':'映画・アニメ', '2':'自動車・乗り物', '10':'音楽', '15':'ペット・動物',
+    '17':'スポーツ', '18':'短編映画', '19':'旅行', '20':'ゲーム',
+    '21':'Vlog', '22':'ブログ・日常', '23':'コメディ', '24':'エンタメ',
+    '25':'ニュース・政治', '26':'ハウツー', '27':'教育',
+    '28':'科学・テクノロジー', '29':'NPO・社会活動'
+  };
+
   // ===== STATE =====
   let allVideos = [];
   let filteredVideos = [];
   let maxViewCount = 1;
+  let maxVpd = 1;
 
   // ===== SECTION TOGGLE =====
   function toggleSection(bodyId, arrowId) {
@@ -696,7 +735,6 @@
     localStorage.setItem('yt_api_key', key);
     updateApiKeyBadge(true);
     showToast('APIキーを保存しました', 'success');
-    // Auto-collapse API section after saving
     const body = document.getElementById('apiBody');
     if (!body.classList.contains('collapsed')) toggleSection('apiBody', 'apiArrow');
   }
@@ -732,15 +770,9 @@
   // ===== SEARCH =====
   async function search() {
     const apiKey = getApiKey();
-    if (!apiKey) {
-      showToast('YouTubeのAPIキーを設定してください', 'error');
-      return;
-    }
+    if (!apiKey) { showToast('YouTubeのAPIキーを設定してください', 'error'); return; }
     const query = document.getElementById('searchQuery').value.trim();
-    if (!query) {
-      showToast('検索キーワードを入力してください', 'error');
-      return;
-    }
+    if (!query) { showToast('検索キーワードを入力してください', 'error'); return; }
 
     showLoading('動画を検索中...');
     document.getElementById('searchBtn').disabled = true;
@@ -774,7 +806,7 @@
       }
 
       const videoIds = items.map(i => i.id.videoId).join(',');
-      setLoadingText('詳細データ（再生数・いいね数など）を取得中...');
+      setLoadingText('詳細データ（再生数・カテゴリ等）を取得中...');
 
       const detailParts = ['snippet', 'statistics', 'contentDetails'];
       const detailUrl = `https://www.googleapis.com/youtube/v3/videos?part=${detailParts.join(',')}&id=${videoIds}&key=${apiKey}`;
@@ -785,7 +817,7 @@
       }
       const detailData = await detailRes.json();
 
-      setLoadingText('チャンネル情報（登録者数・初回登録日）を取得中...');
+      setLoadingText('チャンネル情報（登録者数・総動画数・総再生数）を取得中...');
       const uniqueChannelIds = [...new Set(detailData.items.map(v => v.snippet?.channelId).filter(Boolean))];
       const channelMap = {};
       for (let i = 0; i < uniqueChannelIds.length; i += 50) {
@@ -794,15 +826,24 @@
         if (chRes.ok) {
           const chData = await chRes.json();
           (chData.items || []).forEach(ch => {
+            const subs = parseInt(ch.statistics?.subscriberCount || 0);
+            const videoCount = parseInt(ch.statistics?.videoCount || 0);
+            const totalViews = parseInt(ch.statistics?.viewCount || 0);
             channelMap[ch.id] = {
-              subscribers: parseInt(ch.statistics?.subscriberCount || 0),
-              subscribersStr: ch.statistics?.hiddenSubscriberCount ? '非公開' : fmtNum(parseInt(ch.statistics?.subscriberCount || 0)),
+              subscribers: subs,
+              subscribersStr: ch.statistics?.hiddenSubscriberCount ? '非公開' : fmtNum(subs),
               createdAt: ch.snippet?.publishedAt || '',
               createdStr: formatDate(ch.snippet?.publishedAt),
+              videoCount,
+              videoCountStr: fmtNum(videoCount),
+              totalViews,
+              totalViewsStr: fmtNum(totalViews),
             };
           });
         }
       }
+
+      const now = Date.now();
 
       allVideos = detailData.items.map((v, idx) => {
         const stats = v.statistics || {};
@@ -812,7 +853,22 @@
         const likes = parseInt(stats.likeCount || 0);
         const comments = parseInt(stats.commentCount || 0);
         const engRate = views > 0 ? ((likes + comments) / views * 100).toFixed(2) : '0.00';
-        const chInfo = channelMap[snippet.channelId] || { subscribers: 0, subscribersStr: '-', createdAt: '', createdStr: '-' };
+        const chInfo = channelMap[snippet.channelId] || {
+          subscribers: 0, subscribersStr: '-',
+          createdAt: '', createdStr: '-',
+          videoCount: 0, videoCountStr: '-',
+          totalViews: 0, totalViewsStr: '-'
+        };
+
+        const publishedAt = snippet.publishedAt || '';
+        const daysSince = publishedAt
+          ? Math.max(1, Math.floor((now - new Date(publishedAt)) / 86400000))
+          : 1;
+        const viewsPerDay = Math.round(views / daysSince);
+
+        const categoryId = snippet.categoryId || '';
+        const category = YT_CATEGORIES[categoryId] || (categoryId ? `ID:${categoryId}` : '不明');
+
         return {
           index: idx + 1,
           videoId: v.id,
@@ -820,27 +876,37 @@
           title: snippet.title || '',
           channel: snippet.channelTitle || '',
           channelId: snippet.channelId || '',
-          publishedAt: snippet.publishedAt || '',
-          publishedStr: formatDate(snippet.publishedAt),
+          publishedAt,
+          publishedStr: formatDate(publishedAt),
+          daysSince,
           views, likes, comments,
           engRate: parseFloat(engRate),
           engRateStr: engRate + '%',
+          viewsPerDay,
+          viewsPerDayStr: fmtNum(viewsPerDay),
           duration: parseDuration(details.duration || ''),
           durationStr: formatDuration(details.duration || ''),
           thumbnail: snippet.thumbnails?.medium?.url || snippet.thumbnails?.default?.url || '',
-          tags: (snippet.tags || []).slice(0, 8),
-          description: (snippet.description || '').slice(0, 200),
+          tags: (snippet.tags || []).slice(0, 10),
+          description: snippet.description || '',
           definition: details.definition || '',
-          caption: details.caption || 'false',
+          caption: details.caption === 'true' ? 'あり' : 'なし',
           language: snippet.defaultLanguage || snippet.defaultAudioLanguage || '',
+          categoryId,
+          category,
           channelSubscribers: chInfo.subscribers,
           channelSubscribersStr: chInfo.subscribersStr,
           channelCreatedAt: chInfo.createdAt,
           channelCreatedStr: chInfo.createdStr,
+          channelVideoCount: chInfo.videoCount,
+          channelVideoCountStr: chInfo.videoCountStr,
+          channelTotalViews: chInfo.totalViews,
+          channelTotalViewsStr: chInfo.totalViewsStr,
         };
       });
 
       maxViewCount = Math.max(...allVideos.map(v => v.views), 1);
+      maxVpd = Math.max(...allVideos.map(v => v.viewsPerDay), 1);
       filteredVideos = [...allVideos];
 
       renderTable();
@@ -880,8 +946,11 @@
 
     body.innerHTML = filteredVideos.map((v, i) => {
       const barWidth = maxViewCount > 0 ? (v.views / maxViewCount * 100).toFixed(1) : 0;
+      const vpdBarWidth = maxVpd > 0 ? (v.viewsPerDay / maxVpd * 100).toFixed(1) : 0;
       const tagsHtml = showTags ? v.tags.map(t => `<span class="tag">${escHtml(t)}</span>`).join('') : '';
-      const descHtml = showDesc ? `<div style="font-size:11px;color:var(--text-muted);line-height:1.4;">${escHtml(v.description)}${v.description.length >= 200 ? '...' : ''}</div>` : '';
+      const descHtml = showDesc
+        ? `<td class="desc-cell"><div class="desc-text">${escHtml(v.description)}</div></td>`
+        : '';
       return `
         <tr id="row_${v.videoId}" class="${isSelected(v.videoId) ? 'selected' : ''}">
           <td class="check-col"><input type="checkbox" class="row-check" data-id="${v.videoId}" onchange="toggleRow(this)" ${isSelected(v.videoId) ? 'checked' : ''}></td>
@@ -895,18 +964,30 @@
           <td class="title-cell">
             <div class="video-title"><a href="${v.url}" target="_blank">${escHtml(v.title)}</a></div>
             <div class="video-channel">📺 ${escHtml(v.channel)}</div>
-            <div class="video-date">🗓 ${v.publishedStr}</div>
+            <div class="video-date">🗓 ${v.publishedStr} (${v.daysSince}日前)</div>
           </td>
-          <td class="metric-cell"><div style="font-size:11px;">${v.channelCreatedStr}</div><div class="metric-label">CH開設日</div></td>
-          <td class="metric-cell"><div class="metric-value">${fmtNum(v.views)}</div><div class="metric-label">再生数</div><div class="metric-bar-wrap"><div class="metric-bar" style="width:${barWidth}%"></div></div></td>
+          <td style="min-width:90px;"><span class="category-badge">${escHtml(v.category)}</span></td>
+          <td class="metric-cell">
+            <div class="metric-value">${fmtNum(v.views)}</div>
+            <div class="metric-label">再生数</div>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:${barWidth}%"></div></div>
+          </td>
+          <td class="metric-cell">
+            <div class="metric-value" style="color:var(--orange)">${v.viewsPerDayStr}</div>
+            <div class="metric-label">1日あたり</div>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:${vpdBarWidth}%;background:var(--orange)"></div></div>
+          </td>
           <td class="metric-cell"><div class="metric-value" style="color:var(--primary)">${fmtNum(v.likes)}</div><div class="metric-label">いいね</div></td>
           <td class="metric-cell"><div class="metric-value" style="color:var(--accent)">${fmtNum(v.comments)}</div><div class="metric-label">コメント</div></td>
           <td class="metric-cell"><div class="metric-value" style="color:var(--green)">${v.engRateStr}</div><div class="metric-label">エンゲ率</div></td>
           <td class="metric-cell"><div class="metric-value" style="font-size:12px;">${v.durationStr}</div><div class="metric-label">長さ</div></td>
           <td class="metric-cell"><div style="font-size:11px;">${v.publishedStr}</div></td>
           <td class="metric-cell"><div class="metric-value" style="font-size:12px;">${v.channelSubscribersStr}</div><div class="metric-label">登録者数</div></td>
+          <td class="metric-cell"><div style="font-size:11px;">${v.channelCreatedStr}</div><div class="metric-label">開設日</div></td>
+          <td class="metric-cell"><div class="metric-value" style="font-size:12px;">${v.channelVideoCountStr}</div><div class="metric-label">総動画数</div></td>
+          <td class="metric-cell"><div class="metric-value" style="font-size:12px;">${v.channelTotalViewsStr}</div><div class="metric-label">CH総再生</div></td>
           ${showTags ? `<td class="tags-cell">${tagsHtml}</td>` : ''}
-          ${showDesc ? `<td>${descHtml}</td>` : ''}
+          ${descHtml}
         </tr>`;
     }).join('');
 
@@ -927,6 +1008,7 @@
           </a>
           <span class="card-rank-badge">#${i+1}</span>
           <span class="card-dur-badge">${v.durationStr}</span>
+          <span class="card-cat-badge">${escHtml(v.category)}</span>
           <span class="card-check-badge">
             <input type="checkbox" class="row-check" data-id="${v.videoId}" onchange="toggleRowCard(this)" ${isSelected(v.videoId) ? 'checked' : ''}>
           </span>
@@ -944,6 +1026,10 @@
             <div class="card-stat-lbl">再生数</div>
           </div>
           <div class="card-stat">
+            <div class="card-stat-val" style="color:var(--orange)">${v.viewsPerDayStr}</div>
+            <div class="card-stat-lbl">1日再生数</div>
+          </div>
+          <div class="card-stat">
             <div class="card-stat-val" style="color:var(--primary)">${fmtNum(v.likes)}</div>
             <div class="card-stat-lbl">いいね</div>
           </div>
@@ -956,16 +1042,15 @@
             <div class="card-stat-lbl">エンゲ率</div>
           </div>
           <div class="card-stat">
-            <div class="card-stat-val">${v.durationStr}</div>
-            <div class="card-stat-lbl">長さ</div>
-          </div>
-          <div class="card-stat">
             <div class="card-stat-val" style="font-size:12px;">${v.channelSubscribersStr}</div>
             <div class="card-stat-lbl">登録者数</div>
           </div>
         </div>
         <div class="card-ch-row">
           <span>📅 開設: ${v.channelCreatedStr}</span>
+          <span>🎬 動画数: ${v.channelVideoCountStr}</span>
+          <span>▶️ CH総再生: ${v.channelTotalViewsStr}</span>
+          <span>⏱ ${v.daysSince}日前投稿</span>
         </div>
       </div>`
     ).join('');
@@ -1025,7 +1110,9 @@
   function filterResults() {
     const q = document.getElementById('filterInput').value.toLowerCase();
     filteredVideos = allVideos.filter(v =>
-      v.title.toLowerCase().includes(q) || v.channel.toLowerCase().includes(q)
+      v.title.toLowerCase().includes(q) ||
+      v.channel.toLowerCase().includes(q) ||
+      v.category.toLowerCase().includes(q)
     );
     sortResults(true);
     renderTable();
@@ -1035,31 +1122,49 @@
     const s = document.getElementById('sortSelect').value;
     if (s === 'views_desc') filteredVideos.sort((a,b) => b.views - a.views);
     else if (s === 'views_asc') filteredVideos.sort((a,b) => a.views - b.views);
+    else if (s === 'vpd_desc') filteredVideos.sort((a,b) => b.viewsPerDay - a.viewsPerDay);
     else if (s === 'likes_desc') filteredVideos.sort((a,b) => b.likes - a.likes);
     else if (s === 'comments_desc') filteredVideos.sort((a,b) => b.comments - a.comments);
+    else if (s === 'engagement_desc') filteredVideos.sort((a,b) => b.engRate - a.engRate);
     else if (s === 'date_desc') filteredVideos.sort((a,b) => new Date(b.publishedAt) - new Date(a.publishedAt));
     else if (s === 'date_asc') filteredVideos.sort((a,b) => new Date(a.publishedAt) - new Date(b.publishedAt));
     else if (s === 'duration_desc') filteredVideos.sort((a,b) => b.duration - a.duration);
-    else if (s === 'engagement_desc') filteredVideos.sort((a,b) => b.engRate - a.engRate);
+    else if (s === 'subs_desc') filteredVideos.sort((a,b) => b.channelSubscribers - a.channelSubscribers);
     if (!skipRender) renderTable();
   }
 
   // ===== EXPORT =====
+  function getExportHeaders(showTags, showDesc) {
+    const h = ['#','タイトル','チャンネル','カテゴリ','再生数','1日あたり再生数','いいね数','コメント数',
+      'エンゲージメント率','再生時間','投稿日','経過日数','登録者数',
+      'CH開設日','CH総動画数','CH総再生数','URL'];
+    if (showTags) h.push('タグ');
+    if (showDesc) h.push('概要欄');
+    return h;
+  }
+  function getExportRow(v, i, showTags, showDesc) {
+    const row = [
+      i+1, v.title, v.channel, v.category,
+      v.views, v.viewsPerDay, v.likes, v.comments,
+      v.engRateStr, v.durationStr, v.publishedStr, v.daysSince,
+      v.channelSubscribersStr, v.channelCreatedStr,
+      v.channelVideoCountStr, v.channelTotalViewsStr, v.url
+    ];
+    if (showTags) row.push(v.tags.join(' | '));
+    if (showDesc) row.push(v.description);
+    return row;
+  }
+
   function exportCSV() {
     const videos = getExportVideos();
     if (videos.length === 0) { showToast('エクスポートする動画がありません', 'error'); return; }
     const showTags = document.getElementById('includeTags').checked;
     const showDesc = document.getElementById('includeDesc').checked;
-    const headers = ['#','タイトル','チャンネル','CH開設日','再生数','いいね数','コメント数','エンゲージメント率','再生時間','投稿日','登録者数','URL'];
-    if (showTags) headers.push('タグ');
-    if (showDesc) headers.push('概要欄');
-    const rows = videos.map((v,i) => {
-      const row = [i+1, v.title, v.channel, v.channelCreatedStr, v.views, v.likes, v.comments, v.engRateStr, v.durationStr, v.publishedStr, v.channelSubscribersStr, v.url];
-      if (showTags) row.push(v.tags.join(' | '));
-      if (showDesc) row.push(v.description);
-      return row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',');
-    });
-    const csv = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+    const headers = getExportHeaders(showTags, showDesc);
+    const rows = videos.map((v,i) =>
+      getExportRow(v, i, showTags, showDesc).map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')
+    );
+    const csv = '﻿' + [headers.join(','), ...rows].join('\n');
     downloadFile(csv, `youtube_research_${dateStr()}.csv`, 'text/csv;charset=utf-8;');
     showToast(`${videos.length}件をCSVで出力しました`, 'success');
   }
@@ -1069,15 +1174,8 @@
     if (videos.length === 0) { showToast('エクスポートする動画がありません', 'error'); return; }
     const showTags = document.getElementById('includeTags').checked;
     const showDesc = document.getElementById('includeDesc').checked;
-    const headers = ['#','タイトル','チャンネル','CH開設日','再生数','いいね数','コメント数','エンゲージメント率(%)','再生時間','投稿日','登録者数','URL'];
-    if (showTags) headers.push('タグ');
-    if (showDesc) headers.push('概要欄');
-    let rows = videos.map((v,i) => {
-      const row = [i+1, v.title, v.channel, v.channelCreatedStr, v.views, v.likes, v.comments, v.engRate, v.durationStr, v.publishedStr, v.channelSubscribersStr, v.url];
-      if (showTags) row.push(v.tags.join(' | '));
-      if (showDesc) row.push(v.description);
-      return row;
-    });
+    const headers = getExportHeaders(showTags, showDesc);
+    const rows = videos.map((v,i) => getExportRow(v, i, showTags, showDesc));
     const xml = buildXLSX(headers, rows);
     downloadFile(xml, `youtube_research_${dateStr()}.xls`, 'application/vnd.ms-excel;charset=utf-8;');
     showToast(`${videos.length}件をExcel形式で出力しました`, 'success');
@@ -1087,12 +1185,16 @@
     const videos = getExportVideos();
     if (videos.length === 0) { showToast('エクスポートする動画がありません', 'error'); return; }
     const data = videos.map(v => ({
-      rank: v.index, title: v.title, channel: v.channel, url: v.url,
-      views: v.views, likes: v.likes, comments: v.comments,
+      rank: v.index, title: v.title, channel: v.channel,
+      category: v.category, url: v.url,
+      views: v.views, viewsPerDay: v.viewsPerDay,
+      likes: v.likes, comments: v.comments,
       engagementRate: v.engRateStr, duration: v.durationStr,
-      publishedAt: v.publishedAt, publishedStr: v.publishedStr,
+      publishedAt: v.publishedAt, publishedStr: v.publishedStr, daysSince: v.daysSince,
       channelSubscribers: v.channelSubscribers, channelSubscribersStr: v.channelSubscribersStr,
       channelCreatedAt: v.channelCreatedAt, channelCreatedStr: v.channelCreatedStr,
+      channelVideoCount: v.channelVideoCount, channelVideoCountStr: v.channelVideoCountStr,
+      channelTotalViews: v.channelTotalViews, channelTotalViewsStr: v.channelTotalViewsStr,
       tags: v.tags, description: v.description
     }));
     const json = JSON.stringify(data, null, 2);
@@ -1183,7 +1285,6 @@
     if (key) {
       document.getElementById('apiKeyInput').value = key;
       updateApiKeyBadge(true);
-      // Collapse API section if key is already set
       toggleSection('apiBody', 'apiArrow');
     }
   })();
